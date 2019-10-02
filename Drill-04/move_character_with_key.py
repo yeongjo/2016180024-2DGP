@@ -38,7 +38,7 @@ while running:
     clear_canvas()
     grass.draw(400, 30)
     for y in range(1, 1000):
-        character.clip_draw(frame * 100, 100 * 1, 100, 100, x, y)
+        character.clip_draw(frame * 100, 100 * 1, 100, 80, x, y)
     update_canvas()
 
     handle_events()
