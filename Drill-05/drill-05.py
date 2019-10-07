@@ -19,7 +19,7 @@ character = load_image('animation_sheet.png')
 arrow = load_image('hand_arrow.png')
 
 def handle_events():
-    global running, i, x, y
+    global running, i, x, y, img_dir
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -28,6 +28,10 @@ def handle_events():
             t_x, t_y = event.x, KPU_HEIGHT - 1 - event.y
             goalPos[0], goalPos[1] = t_x, t_y
             prev[0], prev[1] = x, y
+            if t_x - x > 0:
+                img_dir = 1
+            else:
+                img_dir = 0
             i = 0
         if event.type == SDL_MOUSEMOTION:
             mousePos[0], mousePos[1] = event.x, KPU_HEIGHT - 1 - event.y
