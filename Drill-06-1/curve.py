@@ -98,7 +98,7 @@ def draw_curve_4_points(p1, p2, p3, p4):
     draw_point(p4)
 
 
-
+#
 def draw_curve_4_points_advance(p1, p2, p3, p4):
     draw_big_point(p2)
     draw_big_point(p3)
