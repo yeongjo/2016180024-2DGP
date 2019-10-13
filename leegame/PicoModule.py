@@ -129,18 +129,18 @@ class Image:
         if self.filp:
             self.img.clip_composite_draw(0, 0, int(self.size[0]), int(self.size[1]), 0, 'h', int(pos[0]), int(pos[1]),int(size[0]), int(size[1]))
         else:
-            self.img.draw(pos[0], pos[1], size[0], size[1])
+            self.img.draw(int(pos[0]), int(pos[1]), int(size[0]), int(size[1]))
 
 
 class Animation:
     # 스프라이트 시트 이미지 배치는 항상 가로로 함 나중에 애니메이션 추가시 곤란함감소
-    type = 0  # -애니메이션 종류: 0:none, 1:반복재생, 2:한번재생멈춤, 3:한번재생다음애니메
-    sheetCount = 0  # -이미지의 개수
-    imgIdx = 0  # -ImgIdx
+    # -애니메이션 종류: 0:none, 1:반복재생, 2:한번재생멈춤, 3:한번재생다음애니메
+    # -이미지의 개수
+    # -ImgIdx
     delayTime = 1 / 8.0  # -딜레이 시간
     remainDelayTime = 0.0  # -남은 딜레이 시간
 
-    nextAnimIdx = -1  # -nextAnimIdx
+    # -nextAnimIdx
 
     def load(self, path, _type, sheet_count, views, offset):
         self.imgs = [Animation(), Animation()]
@@ -153,20 +153,25 @@ class Animation:
         self._type = _type
         self.sheetCount = sheet_count
         self.offset = offset
+        self.imgIdx = 0
+        self.nextAnimIdx = -1
 
     def play(self, nextAnimIdx):  # -1이 들어오면 재생 후 종류(1,2)에 맞는 행동을 함
         self.nextAnimIdx = nextAnimIdx
+        if self._type != 1:
+            self.imgIdx = 0
+            self.remainDelayTime = 0
 
     def tick(self, dt):
-        # 2일땐 (imgidx def  1 == 이미지의개수) then return -1
+        # 2일땐 (imgIdx def  1 == 이미지의개수) then return -1
         # 1일땐 남은 딜레이 시간 > 딜레이시간 then def def ImgIdx%이미지의개수; return -1
-        # 3일땐 (imgidx def  1 == 이미지의개수) then
+        # 3일땐 (imgIdx def  1 == 이미지의개수) then
         # t = nextAnimIdx; nextAnimIdx = 0; return nextAnimIdx
         self.remainDelayTime += dt
         if self.remainDelayTime > self.delayTime:
             self.remainDelayTime = 0.0
             if self._type == 2:
-                if self.imgidx + 1 == self.sheetCount:
+                if self.imgIdx + 1 == self.sheetCount:
                     return -1
                 else:
                     self.imgIdx += 1
@@ -176,10 +181,13 @@ class Animation:
                 self.imgIdx = self.imgIdx % self.sheetCount
                 return -1
             elif self._type == 3:
-                if self.imgidx + 1 == self.sheetCount:
+                if self.imgIdx + 1 == self.sheetCount:
                     t = self.nextAnimIdx
                     self.nextAnimIdx = 0
+                    self.imgIdx = 0
                     return t
+                else:
+                    self.imgIdx += 1
 
             assert self._type != 0
 
@@ -195,6 +203,9 @@ class Animation:
                                                int(pos[0] + tem_off[0]), int(pos[1] + tem_off[1] + tem_size[1] // 2),
                                                int(tem_size[0]), int(tem_size[1]))
 
+    def get_size(self):
+        return [self.size[0] / self.sheetCount, self.size[1]]
+
 
 class Animator:
 
@@ -205,24 +216,39 @@ class Animator:
         self.flip = ''
 
     def play(self, idx, next_anim=-1):  # 두번째 전달시 종료시 자동으로 다음 애니메이션 재생
+        # idx에 -1전달시 아무것도 안보임
         self.animIdx = idx
+        self.animArr[idx].play(next_anim)
+        self.isEnd = False
 
     def load(self, path, type, sheet_count, views, offset):  # 상속받을때 애니메이션들에 알맞는 이미지 넣어주기
         anim = Animation()
         anim.load(path, type, sheet_count, views, offset)
         self.animArr.append(anim)
 
-    def tick(self, dt):  # 재생중인 애니메이션.tick(rt) 만약 0이상의 수가 반환되면
+    def tick(self, dt):
+        # 재생중인 애니메이션.tick(rt) 만약 0이상의 수가 반환되면
         # play(몇번째) 실행
-        idx = self.animArr[self.animIdx].tick(dt)
-        if idx == -1:
+        # 만약 실행 후 다음 애니메이션이 재생되는 거라면 다음애니메이션 재생후 무슨 애니메이션 끝났는지 알려주기
+        # 행동끝난뒤 실행되야하는 기능들이 있음
+        _idx = self.animArr[self.animIdx].tick(dt)
+
+        if _idx == -1:
             self.isEnd = True
-        elif idx > 0:
-            self.play(idx)
+        elif _idx >= 0:
+            __idx = self.animIdx
+            self.play(_idx)
+            return __idx
+        return -1
 
     def render(self, pos, size, cam):
+        if self.animIdx == -1:
+            return
         self.animArr[self.animIdx].flip = self.flip
         self.animArr[self.animIdx].render(pos, size, cam)
+
+    def get_size(self):
+        return self.animArr[0].get_size()
 
 
 # 매개변수 하나만 (다른거 실행중에도 바로 넘어가야한다)
@@ -321,8 +347,11 @@ class TimePassDetecter:
             return 2
 
 
-def mouse_pos_to_world(mouse_pos, view):
+def mouse_pos_to_view_pos(mouse_pos, view):
     return np.array([mouse_pos[0], view.h - mouse_pos[1]])
+
+def mouse_pos_to_world(mouse_pos, view):
+    return np.array([mouse_pos[0] + view.cam.pos[0], view.h - mouse_pos[1] + view.cam.pos[1]])
 
 
 # 키입력받는 함수에서 플레이어함수를 불러준다
@@ -333,6 +362,12 @@ class Player1Controller:
 
     def mouseInput(self, x, y):
         self.pos[0], self.pos[1] = x, y
+
+    def interact_input(self, isdown):  # ad, s / s키 입력중 ad가 눌리면 누르고있는동작취소
+        if isdown:
+            self.clickTime.start(0.3)
+        else:
+            self.clickTime.cancel()
 
 
 class Player2Controller:
