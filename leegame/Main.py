@@ -1,6 +1,7 @@
 # Load Image함수에도 랜더러받는게 있어서 개고생했다 ㅠ
 from PicoModule import *
 import copy as cp
+import random
 
 firstScene = Scene()
 views = [View(0, firstScene), View(1, firstScene)]
@@ -61,8 +62,8 @@ def interact_to_obj(player_idx):
         if _len < small_len:
             small_len = _len
             small_len_obj = a
-
-    small_len_obj.interact_input(player_idx)
+            small_len_obj.interact_input(player_idx)
+            return
 
 
 class Player2(DrawObj):
@@ -84,6 +85,8 @@ class Player2(DrawObj):
     def tick(self, dt):
         global player2_controller
         self.update_camera(dt)
+        if self.is_in_stair:
+            return
         speed = 300
         run = player2_controller.moveTime.check(dt)
         if run == 1:
@@ -185,36 +188,41 @@ class Stair(DrawObj):
 
     def send_player(self, input_idx, my_idx): #input_idx 0:w 1:a 2:s 3:d
         if input_idx == 0:
-            if my_idx%3 >= my_idx-1:
-                player2.pos = stair_list[my_idx - 1].pos
-            elif my_idx >= 12:
-                player2.pos = stair_list[my_idx - 10].pos
-        if input_idx == 2:
-            if my_idx%3 <= my_idx+1:
-                player2.pos = stair_list[my_idx + 1].pos
-            elif my_idx < 12:
-                player2.pos = stair_list[my_idx + 10].pos
-
-        if input_idx == 1:
-            if 7 <= my_idx <= 9 and 7+12 <= my_idx <= 9+12: #옆방으로
-                player2.pos = stair_list[my_idx - 3].pos
+            if my_idx % 3 == 0 and my_idx < 12:
+                return;
+            if my_idx >= 12 and my_idx % 3 == 0:
+                player2.pos = cp.copy(stair_list[my_idx - 10].pos)
             else:
-                player2.pos = self.pos
-                if 0 <= my_idx <= 3 and 0 + 12 <= my_idx <= 3 + 12:
-                    player2.pos[0] -= 150
-                else:
-                    player2.pos[0] += 150
-                player2.is_in_stair = False
-        if input_idx == 3:
-            if 3 <= my_idx <= 5 and 3+12 <= my_idx <= 5+12: #옆방으로
-                player2.pos = stair_list[my_idx + 3].pos
+                player2.pos = cp.copy(stair_list[my_idx - 1].pos)
+        elif input_idx == 2:
+            if my_idx % 3 == 2 and my_idx >= 12:
+                return;
+            if my_idx < 12 and my_idx % 3 == 2:
+                player2.pos = cp.copy(stair_list[my_idx + 10].pos)
+            else:
+                player2.pos = cp.copy(stair_list[my_idx + 1].pos)
+
+        elif input_idx == 1:
+            if 6 <= my_idx <= 8 or 6+12 <= my_idx <= 8+12: #옆방으로
+                player2.pos = cp.copy(stair_list[my_idx - 3].pos)
             else:
                 player2.pos = cp.copy(self.pos)
-                if 9 <= my_idx <= 11 and 9 + 12 <= my_idx <= 11 + 12:
+                if 0 <= my_idx <= 2 or 0 + 12 <= my_idx <= 2 + 12:
+                    pass
+                else:
                     player2.pos[0] -= 150
+                player2.is_in_stair = False
+        elif input_idx == 3:
+            if 3 <= my_idx <= 5 or 3+12 <= my_idx <= 5+12: #옆방으로
+                player2.pos = cp.copy(stair_list[my_idx + 3].pos)
+            else:
+                player2.pos = cp.copy(self.pos)
+                if 9 <= my_idx <= 11 or 9 + 12 <= my_idx <= 11 + 12:
+                    pass
                 else:
                     player2.pos[0] += 150
                 player2.is_in_stair = False
+        player2.pos[1] -= 95
 
 
 class InteractObj(DrawObj):
@@ -294,9 +302,39 @@ class InteractObj(DrawObj):
         if _len_2 < _hsize2:
             self.interact(player_idx)
 
+def calculate_floor_height(floor):
+    return floor_height[floor%3] + 1080 if floor >= 3 else floor_height[floor]
+
+# 층은 0층부터 시작
+def make_obj(name, x, floor):
+    t = InteractObj(firstScene.objM)
+    t.pos[0] = x
+    t.pos[1] = calculate_floor_height(floor)
+    if name == '에어컨':
+        t.pos[1] += 100
+    t.anim.load('img/'+name+'_off.png', 1, 1, views, np.array([0, 0]))
+    if name == '복사기':
+        t.anim.load('img/복사기_on.png', 1, 4, views, np.array([0, 0]))
+        t.anim.load('img/복사기_start.png', 1, 2, views, np.array([0, 0]))
+    else:
+        t.anim.load('img/'+name+'_on.png', 1, 2, views, np.array([0, 0]))
+
+obj_name_list = ['냉장고', '복사기', '에어컨', '전등', '정수기', '컴터']
+
+def make_random_floor_obj(x, floor):
+    i = 0
+    wall_size = 600
+    count = random.randint(2,4)
+    range = (1920-wall_size*2)//count
+    small_range = range // 10
+    while i < count:
+        make_obj(obj_name_list[random.randint(0, len(obj_name_list) - 1)], x*1920-1920//2+wall_size+range*i + random.randint(-small_range, small_range), floor)
+        i += 1
 
 def init():
-    pc.SDL_SetRelativeMouseMode(pc.SDL_TRUE)
+    pc.SDL_SetRelativeMouseMode(pc.SDL_TRUE) # 마우스 화면밖에 못나가게
+    pc.SDL_WarpMouseInWindow(views[0].window, views[0].w//2, views[0].h//2)
+
     global buildings
     buildings = []
     building_pos = [[0, 1080], [1920, 1080],[0, 0],[1920, 0]]
@@ -321,21 +359,11 @@ def init():
         stair_list[i + 6+12].other_stair = stair_list[i + 3+12]
         i+=1
 
-    t = InteractObj(firstScene.objM)
-    t.anim.load('img/냉장고_off.png', 1, 1, views, np.array([0, 0]))
-    t.anim.load('img/냉장고_on.png', 1, 2, views, np.array([0, 0]))
-
-    t = InteractObj(firstScene.objM, 1)
-    t.pos[0] = -150
-    t.anim.load('img/복사기_off.png', 1, 1, views, np.array([0, 0]))
-    t.anim.load('img/복사기_on.png', 1, 4, views, np.array([0, 0]))
-    t.anim.load('img/복사기_start.png', 1, 2, views, np.array([0, 0]))
-
-    t = InteractObj(firstScene.objM)
-    t.pos[0] = -350
-    t.pos[1] = floor_height[1] + 90
-    t.anim.load('img/에어컨_off.png', 1, 1, views, np.array([0, 0]))
-    t.anim.load('img/에어컨_on.png', 1, 2, views, np.array([0, 0]))
+    # Make Obj
+    i = 0
+    while i < 6:
+        make_random_floor_obj(0, i)
+        i += 1
 
     global player2
     player2 = Player2(firstScene.objM)
