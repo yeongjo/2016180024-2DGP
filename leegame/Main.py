@@ -10,7 +10,7 @@ player2_controller = Player2Controller()
 running = True
 floor_height = (218, -139, -500)
 
-
+init_text()
 # 배경그려야함
 
 class Cursor(DrawObj):
@@ -19,7 +19,7 @@ class Cursor(DrawObj):
         global player1_controller
         pos = player1_controller.pos
         speed = 1000
-        self.pos = mouse_pos_to_view_pos(player1_controller.pos, views[0])
+        self.pos = mouse_pos_to_view_pos(pos, views[0])
         t = 1 / views[0].cam.size
         self.pos[0], self.pos[1] = int(self.pos[0] * 1 / views[0].cam.size), int(self.pos[1] * 1 / views[0].cam.size)
         self.pos = self.pos + np.array([self.imgs[0].size[0] / 2, -self.imgs[0].size[1] / 2]) + views[0].cam.pos
@@ -40,6 +40,9 @@ class Cursor(DrawObj):
         if player1_controller.clickTime.check(dt) == 1:
             interact_to_obj(1)
 
+    def render(self, cam):
+        tem_pos, tem_size = super()
+        debug_text(str(self.pos + np.array([-self.imgs[0].img.w//2, self.imgs[0].img.h//2])), tem_pos)
 
 interact_obj_list = []
 
@@ -62,8 +65,8 @@ def interact_to_obj(player_idx):
         if _len < small_len:
             small_len = _len
             small_len_obj = a
-            small_len_obj.interact_input(player_idx)
-            return
+
+    small_len_obj.interact_input(player_idx)
 
 
 class Player2(DrawObj):
@@ -156,6 +159,7 @@ class Player2(DrawObj):
             return
         tem_pos, tem_size = self.calculate_pos_size(cam)
         self.anim.render(tem_pos, tem_size, cam)
+        debug_text(str(self.pos), tem_pos)
 
 
 class Building(DrawObj):
@@ -257,11 +261,11 @@ class InteractObj(DrawObj):
     def render(self, cam):
         tem_pos, tem_size = self.calculate_pos_size(cam)
         self.anim.render(tem_pos, tem_size, cam)
+        debug_text(str(self.pos), tem_pos)
 
     def interact(self, player_idx, is_interacting=False):
         if player_idx == 1:
             self.anim.play(0)
-            print(1)
         elif player_idx == 2:
             if self.doing_limit_time >= 0:
                 self.anim.play(2)
@@ -332,7 +336,7 @@ def make_random_floor_obj(x, floor):
         i += 1
 
 def init():
-    pc.SDL_SetRelativeMouseMode(pc.SDL_TRUE) # 마우스 화면밖에 못나가게
+    #pc.SDL_SetRelativeMouseMode(pc.SDL_TRUE) # 마우스 화면밖에 못나가게
     pc.SDL_WarpMouseInWindow(views[0].window, views[0].w//2, views[0].h//2)
 
     global buildings
@@ -390,6 +394,7 @@ def input_handle():
             if (a.button == 1):
                 player1_controller.interact_input(True)
         if a.type == pc.SDL_MOUSEMOTION:
+            print(mouse_pos_to_world((a.x, a.y), views[0]))
             player1_controller.mouseInput(a.x, a.y)
 
         if a.type == pc.SDL_MOUSEBUTTONUP:

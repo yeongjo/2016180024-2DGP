@@ -1,10 +1,20 @@
 import pico2d as pc
 import numpy as np
+import os
 
+is_debug = True
+path = "font/HoonWhitecatR.ttf"
+def init_text():
+    global font01
+    font01 = pc.load_font(path, 20)
 
-def test():
-    print('hi')
+def debug_text(str, pos, color = (100,255,100)):
+    if(is_debug):
+        draw_text(str, pos, color)
 
+def draw_text(str, pos, color = (255,255,255)):
+    global font01
+    font01.draw(pos[0], pos[1], str, color)
 
 def open_other_canvas(w=int(800), h=int(600), sync=True, full=False):
     # SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
@@ -297,6 +307,7 @@ class DrawObj(TickObj):
         # Camera 인덱스 번호읽어서 다른 플레이별로 색 다른 이미지 읽어도 좋을듯
         tem_pos, tem_size = self.calculate_pos_size(cam)
         self.imgs[cam.idx].render(tem_pos, tem_size)
+        return tem_pos, tem_size
 
     def load_img(self, path, views):  # init에서 불러주고 init은 __init__ 에서 불러주기로
         # 렌더러 2개라 렌더러별로 하나씩 불러줘야함.
