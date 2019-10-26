@@ -122,9 +122,7 @@ class View:
     def use(self):
         global active_view
         active_view = self
-        pc.set_window_renderer(self.window, self.renderer)
-        pc.canvas_height = self.h
-        pc.canvas_width = self.w
+        pc.set_window_renderer(self.window, self.renderer, self.w, self.h)
 
     def render(self):
         self.use()
@@ -149,9 +147,10 @@ class ImgLoader:
 img_loader = (ImgLoader(), ImgLoader())
 
 
-def is_clip(self, pos, size):
-    hs = size * self.size // 2
-    if pos[0] - hs[0] < 0 or pos[0] + hs[0] > active_view.w or pos[1] - hs[1] < 0 or pos[1] + hs[1] > active_view.h:
+def is_clip(pos, size):
+    hs = size // 2
+    # 화면 밖에 나가면 true
+    if pos[0] + hs[0] < 0 or pos[0] - hs[0] > active_view.w or pos[1] + hs[1] < 0 or pos[1] - hs[1] > active_view.h:
         return True
     return False
 
@@ -159,12 +158,11 @@ class Image:
     # DrawObj에서 호출될듯, DrawObj마다 두개씩 있음
     def load(self, path, idx):
         self.img = img_loader[idx].load(path)
-        self.size = [self.img.w, self.img.h]
+        self.size = np.array([self.img.w, self.img.h])
         self.filp = False
 
-
     def render(self, pos, size):
-        if is_clip(self, pos, size):
+        if is_clip(pos, size * self.size):
             return
         if self.filp:
             self.img.clip_composite_draw(0, 0, int(self.size[0]), int(self.size[1]), 0, 'h', int(pos[0]), int(pos[1]),
@@ -189,7 +187,7 @@ class Animation:
         self.imgs[0] = img_loader[0].load(path)
         views[1].use()
         self.imgs[1] = img_loader[1].load(path)
-        self.size = [self.imgs[0].w, self.imgs[0].h]
+        self.size = np.array([self.imgs[0].w, self.imgs[0].h])
         self.flip = ''
         self._type = _type
         self.sheetCount = sheet_count
@@ -237,11 +235,11 @@ class Animation:
         return -2
 
     def render(self, pos, size, cam):  # render에서 종류#0이면 바로 return
-        if is_clip(self, pos, size):
-            return
         w = self.size[0] / self.sheetCount
-        tem_size = [w * size[0], self.size[1] * size[1]]
+        tem_size = np.array([w * size[0], self.size[1] * size[1]])
         tem_off = self.offset * cam.size
+        if is_clip(np.array([pos[0] + tem_off[0], pos[1] + tem_off[1] + tem_size[1] // 2]), tem_size):
+            return
         if self.flip == 'h':
             tem_off[0] = -tem_off[0]
         self.imgs[cam.idx].clip_composite_draw(int(self.imgIdx * w), 0, int(w), self.size[1], 0, self.flip,

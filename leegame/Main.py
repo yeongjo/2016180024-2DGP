@@ -364,14 +364,22 @@ def make_random_floor_obj(x, floor):
 
 
 class Ui(DrawObj):
+
+    def __init__(self, objM):
+        super().__init__(objM)
+        self.off = (0,0)
+
+    def set_off(self, off):
+        self.off = off
+
     def render(self, cam):
         vw = views[cam.idx].w // 2
         vh = views[cam.idx].h
         ratio1 = views[cam.idx].w / map_size[0]
         #h = views[cam.idx].h / map_size[1]
-        tem_size = np.array([ratio1,ratio1])
-        tem_pos = np.array([(self.pos[0] - map_size[0] // 2)*ratio1 + vw , vh -self.pos[1]*ratio1])
-        tem_size *= 1.3
+        tem_size = np.array([ratio1, ratio1])
+        tem_pos = np.array([(self.pos[0])*ratio1 + vw - self.off[0] * (self.imgs[0].size[0]//2) , vh -self.pos[1]*ratio1])
+        tem_size *= 1.5
         self.imgs[cam.idx].render(tem_pos, tem_size)
 
 
@@ -421,10 +429,17 @@ def init():
 
     ui_center = Ui(firstScene.objM)
     ui_center.load_img('img/ui_center.png', views)
+    ui_center.set_pos(0, 90)
 
     ui_mouse = Ui(firstScene.objM)
     ui_mouse.load_img('img/ui_mouse.png', views)
-    ui_mouse.set_pos(266, 100)
+    ui_mouse.set_pos(366, 90)
+    ui_mouse.set_off((-1,0))
+
+    ui_mouse = Ui(firstScene.objM)
+    ui_mouse.load_img('img/ui_keyboard.png', views)
+    ui_mouse.set_pos(-366, 90)
+    ui_mouse.set_off((1,0))
 
 
 def loop(dt):  # View 각자의 그리기를 불러줌
