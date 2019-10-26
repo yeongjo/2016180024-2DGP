@@ -4,17 +4,23 @@ import os
 
 is_debug = True
 path = "font/HoonWhitecatR.ttf"
+
+active_view = None
+
 def init_text():
     global font01
     font01 = pc.load_font(path, 20)
 
-def debug_text(str, pos, color = (100,255,100)):
-    if(is_debug):
+
+def debug_text(str, pos, color=(0, 200, 0)):
+    if (is_debug):
         draw_text(str, pos, color)
 
-def draw_text(str, pos, color = (255,255,255)):
+
+def draw_text(str, pos, color=(255, 255, 255)):
     global font01
     font01.draw(pos[0], pos[1], str, color)
+
 
 def open_other_canvas(w=int(800), h=int(600), sync=True, full=False):
     # SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
@@ -103,7 +109,7 @@ class View:
             win, ren, w, h = pc.open_canvas()
             isFirstOpenCanvas = False
         else:
-            win, ren, w, h = open_other_canvas()
+            win, ren, w, h = open_other_canvas(1200, 800)
         self.window = win
         self.renderer = ren
         self.h = h
@@ -114,6 +120,8 @@ class View:
         self.scene = scene
 
     def use(self):
+        global active_view
+        active_view = self
         pc.set_window_renderer(self.window, self.renderer)
         pc.canvas_height = self.h
         pc.canvas_width = self.w
@@ -128,18 +136,41 @@ class View:
         self.scene.tick(dt)
 
 
+# 뷰마다 하나씩 가지기
+class ImgLoader:
+    def __init__(self):
+        self.imgs = {}
+
+    def load(self, path):
+        if path not in self.imgs:
+            self.imgs[path] = pc.load_image(path)
+        return self.imgs[path]
+
+img_loader = (ImgLoader(), ImgLoader())
+
+
+def is_clip(self, pos, size):
+    hs = size * self.size // 2
+    if pos[0] - hs[0] < 0 or pos[0] + hs[0] > active_view.w or pos[1] - hs[1] < 0 or pos[1] + hs[1] > active_view.h:
+        return True
+    return False
+
 class Image:
     # DrawObj에서 호출될듯, DrawObj마다 두개씩 있음
-    def load(self, path):
-        self.img = pc.load_image(path)
+    def load(self, path, idx):
+        self.img = img_loader[idx].load(path)
         self.size = [self.img.w, self.img.h]
         self.filp = False
 
+
     def render(self, pos, size):
+        if is_clip(self, pos, size):
+            return
         if self.filp:
-            self.img.clip_composite_draw(0, 0, int(self.size[0]), int(self.size[1]), 0, 'h', int(pos[0]), int(pos[1]),int(size[0]), int(size[1]))
+            self.img.clip_composite_draw(0, 0, int(self.size[0]), int(self.size[1]), 0, 'h', int(pos[0]), int(pos[1]),
+                                         int(size[0]*self.size[0]), int(size[1]*self.size[1]))
         else:
-            self.img.draw(int(pos[0]), int(pos[1]), int(size[0]), int(size[1]))
+            self.img.draw(int(pos[0]), int(pos[1]), int(size[0]*self.size[0]), int(size[1]*self.size[1]))
 
 
 class Animation:
@@ -153,11 +184,11 @@ class Animation:
     # -nextAnimIdx
 
     def load(self, path, _type, sheet_count, views, offset):
-        self.imgs = [Animation(), Animation()]
+        self.imgs = [0, 0]
         views[0].use()
-        self.imgs[0] = pc.load_image(path)
+        self.imgs[0] = img_loader[0].load(path)
         views[1].use()
-        self.imgs[1] = pc.load_image(path)
+        self.imgs[1] = img_loader[1].load(path)
         self.size = [self.imgs[0].w, self.imgs[0].h]
         self.flip = ''
         self._type = _type
@@ -177,6 +208,8 @@ class Animation:
         # 1일땐 남은 딜레이 시간 > 딜레이시간 then def def ImgIdx%이미지의개수; return -1
         # 3일땐 (imgIdx def  1 == 이미지의개수) then
         # t = nextAnimIdx; nextAnimIdx = 0; return nextAnimIdx
+        if self.sheetCount == 0:
+            return -1
         self.remainDelayTime += dt
         if self.remainDelayTime > self.delayTime:
             self.remainDelayTime = 0.0
@@ -204,6 +237,8 @@ class Animation:
         return -2
 
     def render(self, pos, size, cam):  # render에서 종류#0이면 바로 return
+        if is_clip(self, pos, size):
+            return
         w = self.size[0] / self.sheetCount
         tem_size = [w * size[0], self.size[1] * size[1]]
         tem_off = self.offset * cam.size
@@ -296,6 +331,9 @@ class DrawObj(TickObj):
         self.pos = np.array([0.0, 0.0])
         self.size = np.array([1, 1])
 
+    def set_pos(self, x, y):
+        self.pos[0], self.pos[1] = x, y
+
     def calculate_pos_size(self, cam):
         tem_size = self.size * np.array([cam.size, cam.size])
         tem_pos = (self.pos - cam.pos) * cam.size
@@ -313,10 +351,10 @@ class DrawObj(TickObj):
         # 렌더러 2개라 렌더러별로 하나씩 불러줘야함.
         self.imgs = [Image(), Image()]
         views[0].use()
-        self.imgs[0].load(path)
+        self.imgs[0].load(path, 0)
         views[1].use()
-        self.imgs[1].load(path)
-        self.size = self.imgs[0].size
+        self.imgs[1].load(path, 1)
+        #self.size = self.imgs[0].size
 
     def load_animation(self, animation):
         pass
@@ -342,7 +380,6 @@ class TimePassDetecter:
                 self.elapseTime = 0.0
                 self.state = -1
 
-
     def check(self, dt):
         # [다른곳에서 사용법] 2가 반환되면 꾹누를때하는 동작을 수행한다. 꾸준히 검사하다. 0이 나오면 취소, 혹은 경우에 따라서 이동으로 취소도 가능, 조작에서 해야함
         # [클릭 및 꾹누름 인식방식]
@@ -361,8 +398,12 @@ class TimePassDetecter:
 def mouse_pos_to_view_pos(mouse_pos, view):
     return np.array([mouse_pos[0], view.h - mouse_pos[1]])
 
+
 def mouse_pos_to_world(mouse_pos, view):
-    return np.array([mouse_pos[0] + view.cam.pos[0], view.h - mouse_pos[1] + view.cam.pos[1]])
+    pos = mouse_pos_to_view_pos(mouse_pos, view)
+    t = 1 / view.cam.size
+    pos[0], pos[1] = int(pos[0] * 1 / view.cam.size), int(pos[1] * 1 / view.cam.size)
+    return pos + view.cam.pos
 
 
 # 키입력받는 함수에서 플레이어함수를 불러준다
@@ -390,3 +431,6 @@ class Player2Controller:
             self.moveTime.start(0.3)
         else:
             self.moveTime.cancel()
+
+
+
