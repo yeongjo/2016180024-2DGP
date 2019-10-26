@@ -7,6 +7,8 @@ path = "font/HoonWhitecatR.ttf"
 
 active_view = None
 
+
+
 def init_text():
     global font01
     font01 = pc.load_font(path, 20)
@@ -123,6 +125,7 @@ class View:
         global active_view
         active_view = self
         pc.set_window_renderer(self.window, self.renderer, self.w, self.h)
+        pc.canvas_height = self.w, self.h
 
     def render(self):
         self.use()

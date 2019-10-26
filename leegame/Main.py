@@ -376,12 +376,25 @@ class Ui(DrawObj):
         vw = views[cam.idx].w // 2
         vh = views[cam.idx].h
         ratio1 = views[cam.idx].w / map_size[0]
+        ww = self.imgs[0].size[0] // 2
         #h = views[cam.idx].h / map_size[1]
         tem_size = np.array([ratio1, ratio1])
-        tem_pos = np.array([(self.pos[0])*ratio1 + vw - self.off[0] * (self.imgs[0].size[0]//2) , vh -self.pos[1]*ratio1])
+        tem_pos = np.array([self.pos[0]*ratio1 + vw - self.off[0] * ww, vh - self.pos[1]*ratio1])
         tem_size *= 1.5
         self.imgs[cam.idx].render(tem_pos, tem_size)
 
+class Ui_hp(DrawObj):
+    def set_color(self, r, g, b):
+        self.color = (r,g,b)
+
+    def render(self, cam):
+        vw = views[cam.idx].w // 2
+        vh = views[cam.idx].h
+        ratio1 = views[cam.idx].w / map_size[0]
+        # h = views[cam.idx].h / map_size[1]
+        tem_size = np.array([self.size[0] * ratio1 + vw, vh - self.size[1] * ratio1])
+        tem_pos = np.array([self.pos[0] * ratio1 + vw, vh - self.pos[1] * ratio1])
+        pc.draw_fillrectangle(tem_pos[0], tem_pos[1], tem_size[0], tem_size[1], self.color[0], self.color[1], self.color[2])
 
 def init():
     # pc.SDL_SetRelativeMouseMode(pc.SDL_TRUE) # 마우스 화면밖에 못나가게
@@ -427,9 +440,7 @@ def init():
     cursor = Cursor(firstScene.objM)
     cursor.load_img('img/cursor.png', views)
 
-    ui_center = Ui(firstScene.objM)
-    ui_center.load_img('img/ui_center.png', views)
-    ui_center.set_pos(0, 90)
+
 
     ui_mouse = Ui(firstScene.objM)
     ui_mouse.load_img('img/ui_mouse.png', views)
@@ -440,6 +451,16 @@ def init():
     ui_mouse.load_img('img/ui_keyboard.png', views)
     ui_mouse.set_pos(-366, 90)
     ui_mouse.set_off((1,0))
+
+    ui_hp = Ui_hp(firstScene.objM)
+    ui_hp.load_img('img/ui_keyboard.png', views)
+    ui_hp.set_pos(-381, 68)
+    ui_hp.size[0], ui_hp.size[1] = 0, 38
+    ui_hp.set_color(240, 63, 63)
+    
+    ui_center = Ui(firstScene.objM)
+    ui_center.load_img('img/ui_center.png', views)
+    ui_center.set_pos(0, 90)
 
 
 def loop(dt):  # View 각자의 그리기를 불러줌
