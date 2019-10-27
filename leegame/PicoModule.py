@@ -108,10 +108,11 @@ class View:
         global isFirstOpenCanvas
         self.scene = scene
         if isFirstOpenCanvas:
-            win, ren, w, h = pc.open_canvas()
+            win, ren, w, h = pc.open_canvas(1920, 1050)
             isFirstOpenCanvas = False
         else:
-            win, ren, w, h = open_other_canvas(1200, 800)
+            win, ren, w, h = open_other_canvas(1920, 1050)
+        pc.hide_lattice()
         self.window = win
         self.renderer = ren
         self.h = h
