@@ -63,6 +63,9 @@ class GameManger:
             pass  # 키보드
 
 
+actor_list = []
+
+
 class Cursor(DrawObj):
 
     def __init__(self, objM):
@@ -129,7 +132,21 @@ class Cursor(DrawObj):
     def shot(self):
         self.anim.play(3, 0)
         print("shot")
-        player2.check_take_damage(self.mouse)
+
+        if player2.check_take_damage(self.mouse) is False:
+            small_len_obj = None
+            small_len = 300000000
+            tem_mouse_pos = np.array([self.mouse[0], self.mouse[1] - 150])
+
+            for a in actor_list:
+                _vec = tem_mouse_pos - a.pos
+                _len = sum(x * x for x in _vec)
+                if _len < small_len:
+                    small_len = _len
+                    small_len_obj = a
+
+            if small_len_obj is not None:
+                small_len_obj.check_take_damage(self.mouse)
 
     def render(self, cam):
         tem_pos, tem_size = self.calculate_pos_size(cam)
@@ -239,25 +256,29 @@ class Actor(DrawObj):
         self.anim.load('img/user_idle.png', 1, 5, views, np.array([80, 0]))
         self.anim.load('img/user_walk.png', 1, 8, views, np.array([80, 0]))
         self.anim.load('img/user_run.png', 1, 4, views, np.array([80, 0]))
-        self.anim.load('img/user_active.png', 3, 3, views, np.array([80, 0]))  # 애니메이션이 끝나면 anim.tick()에서 3을 반환함
+        self.anim.load('img/user_die1.png', 2, 9, views, np.array([80, 0]))  # 3 플레이어한테 죽음
+        self.anim.load('img/user_hit.png', 3, 1, views, np.array([80, 0]))  # 4 아야
         self.speed = 300
         self.is_die = False
         self.is_in_stair = False
         self.health = 1
 
+        global actor_list
+        actor_list.append(self)
 
     def set_brain(self, brain):
         self.brain = brain
 
     def tick(self, dt):
+        end_anim_idx = self.anim.tick(dt)
         if self.is_die is True:
             return
         self.brain.tick(dt)
-        end_anim_idx = self.anim.tick(dt)
 
     # 뇌가 조종함
     def move(self, x, is_run):
-
+        if self.is_die is True:
+            return
         if x > 0:
             self.anim.flip = 'h'
             self.anim.play(1)
@@ -273,7 +294,7 @@ class Actor(DrawObj):
         self.is_in_stair = val
 
     def render(self, cam):
-        if self.is_in_stair or self.is_die:
+        if self.is_in_stair:
             return
 
         tem_pos, tem_size = self.calculate_pos_size(cam)
@@ -281,22 +302,31 @@ class Actor(DrawObj):
         debug_text(str(self.health), tem_pos)
 
     def check_take_damage(self, point):
-        size = self.anim.animArr[0].get_size()
-        rect = (self.pos[0], self.pos[1], size[0], size[1])
+        if self.is_die is True:
+            return
+
+        size = np.array([90, 199]) // 2
+        rect = (self.pos[0] - size[0], self.pos[1] + size[1], self.pos[0] + size[0], self.pos[1] - size[1])
         if check_coll_rect(rect, point):
             self.health -= 1
             if self.health <= 0:
                 self.health = 0
                 self.die()
+            return True
+        return False
 
     def die(self):
         self.is_die = True
+        self.anim.play(4, 3)
+        actor_list.remove(self)
 
 
 class Player2(DrawObj):
     def __init__(self, objm):
         super().__init__(objm)
         self.load_img('img/stair_move.png', views)
+        self.anim2 = Animator()
+        self.anim2.load('img/ping.png', 1, 2, views, np.array([0, 0]))
         self.size[0], self.size[1] = 1, 1
         self.anim = Animator()
         self.anim.load('img/user_idle.png', 1, 5, views, np.array([80, 0])) # 0
@@ -322,6 +352,7 @@ class Player2(DrawObj):
         global player2_controller
         self.update_camera(dt)
         end_anim_idx = self.anim.tick(dt)
+        self.anim2.tick(dt)
         if self.is_in_stair or self.is_die:
             return
         speed = 300
@@ -363,7 +394,10 @@ class Player2(DrawObj):
         self.check_stair()
 
     def check_take_damage(self, point):
-        size = np.array(self.anim.animArr[0].get_size()) // 2
+        if self.is_die is True:
+            return
+
+        size = np.array([90, 199]) // 2
         rect = (self.pos[0] - size[0], self.pos[1] + size[1], self.pos[0] + size[0], self.pos[1] - size[1])
         if check_coll_rect(rect, point):
             self.anim.play(7, 0)
@@ -371,6 +405,8 @@ class Player2(DrawObj):
             if self.health <= 0:
                 self.health = 0
                 self.die()
+            return True
+        return False
 
     def die(self):
         self.is_die = True
@@ -378,7 +414,7 @@ class Player2(DrawObj):
 
     # tick 에서 불림 계단이랑 부딫히면 계단안에 들어간 상태로 변경
     def check_stair(self):
-        if self.is_die == True:
+        if self.is_die is True:
             return
         if self.is_in_stair:
             return
@@ -420,6 +456,10 @@ class Player2(DrawObj):
             return
         self.anim.render(tem_pos, tem_size, cam)
         debug_text(str(self.health), tem_pos)
+
+        if cam.idx == 0: return
+        tem_pos[1] += 190
+        self.anim2.render(tem_pos, tem_size, cam)
 
 
 class Building(DrawObj):

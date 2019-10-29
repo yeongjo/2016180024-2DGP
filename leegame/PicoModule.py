@@ -2,7 +2,7 @@ import pico2d as pc
 import numpy as np
 import os
 
-is_debug = True
+is_debug = False
 path = "font/HoonWhitecatR.ttf"
 
 active_view = None
