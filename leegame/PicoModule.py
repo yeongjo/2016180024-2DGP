@@ -180,10 +180,12 @@ class Animation:
     # -애니메이션 종류: 0:none, 1:반복재생, 2:한번재생멈춤, 3:한번재생다음애니메
     # -이미지의 개수
     # -ImgIdx
-    delayTime = 1 / 8.0  # -딜레이 시간
-    remainDelayTime = 0.0  # -남은 딜레이 시간
 
     # -nextAnimIdx
+
+    def __init__(self):
+        self.delayTime = 1 / 8.0  # -딜레이 시간
+        self.remainDelayTime = 0.0  # -남은 딜레이 시간
 
     def load(self, path, _type, sheet_count, views, offset):
         self.imgs = [0, 0]
@@ -268,24 +270,26 @@ class Animator:
         self.animArr[idx].play(next_anim)
         self.isEnd = False
 
+    # type 애니메이션 종류: 0:none, 1:반복재생, 2:한번재생멈춤, 3:한번재생다음애니메
     def load(self, path, type, sheet_count, views, offset):  # 상속받을때 애니메이션들에 알맞는 이미지 넣어주기
         anim = Animation()
         anim.load(path, type, sheet_count, views, offset)
         self.animArr.append(anim)
 
+    # 반환값은 지금 끝난 애니메이션 인덱스
     def tick(self, dt):
         # 재생중인 애니메이션.tick(rt) 만약 0이상의 수가 반환되면
         # play(몇번째) 실행
-        # 만약 실행 후 다음 애니메이션이 재생되는 거라면 다음애니메이션 재생후 무슨 애니메이션 끝났는지 알려주기
+        # 만약 실행 후 다음 애니메이션이 재생되는 거라면 다음애니메이션 재생후 지금 무슨 애니메이션 끝났는지 알려주기
         # 행동끝난뒤 실행되야하는 기능들이 있음
         _idx = self.animArr[self.animIdx].tick(dt)
 
         if _idx == -1:
             self.isEnd = True
         elif _idx >= 0:
-            __idx = self.animIdx
+            prev_idx = self.animIdx
             self.play(_idx)
-            return __idx
+            return prev_idx
         return -1
 
     def render(self, pos, size, cam):
@@ -412,21 +416,24 @@ def mouse_pos_to_world(mouse_pos, view):
 class Player1Controller:
     pos = np.array([0, 0])
     clickTime = TimePassDetecter()  # 클릭용
-    moveTime = TimePassDetecter()  # 화면이동용
+    # moveTime = TimePassDetecter()  # 화면이동용
+
+    is_down = False
 
     def mouseInput(self, x, y):
-        self.pos[0], self.pos[1] = x, y
+        Player1Controller.pos[0], Player1Controller.pos[1] = x, y
 
     def interact_input(self, isdown):  # ad, s / s키 입력중 ad가 눌리면 누르고있는동작취소
+        Player1Controller.is_down = isdown
         if isdown:
-            self.clickTime.start(0.3)
+            Player1Controller.clickTime.start(0.3)
         else:
-            self.clickTime.cancel()
+            Player1Controller.clickTime.cancel()
 
 
 class Player2Controller:
     x = 0
-    moveTime = TimePassDetecter()  # 화면이동용
+    moveTime = TimePassDetecter()  # 달리기용
 
     def interact_input(self, isdown):  # ad, s / s키 입력중 ad가 눌리면 누르고있는동작취소
         if isdown:
@@ -435,4 +442,7 @@ class Player2Controller:
             self.moveTime.cancel()
 
 
-
+def check_coll_rect(rect, point):
+    if point[0] < rect[0] or rect[2] < point[0] or point[1] < rect[3] or rect[1] < point[1]:
+        return False
+    return True
