@@ -151,3 +151,7 @@ fabric.properties
 # *.ipr
 
 # End of https://www.gitignore.io/api/python,pycharm
+leegame/.vs/ProjectSettings.json
+leegame/.vs/PythonSettings.json
+leegame/.vs/slnx.sqlite
+leegame/.vs/leegame/v16/.suo
