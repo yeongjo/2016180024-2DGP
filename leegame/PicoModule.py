@@ -6,7 +6,7 @@ is_debug = False
 
 active_scene = None
 active_view = None
-active_view_list = [None,None]
+views = [None, None]
 font01 = None
 
 
@@ -79,15 +79,12 @@ class ObjsList:
 
 class View:
     # 윈도우마다 하나씩 있음
-    isFirstOpenCanvas = True
+    is_first_open_canvas = True
 
     def __init__(self, idx):
-        global active_scene
-        self.scene = active_scene
-
-        if View.isFirstOpenCanvas:
+        if View.is_first_open_canvas:
             win, ren, w, h = pc.open_canvas(1920, 1050)
-            View.isFirstOpenCanvas = False
+            View.is_first_open_canvas = False
         else:
             win, ren, w, h = open_other_canvas(1920, 1050)
 
@@ -105,12 +102,6 @@ class View:
         global active_view
         active_view = self
         pc.set_window_renderer(self.window, self.renderer, self.w, self.h)
-
-    def render(self):
-        self.use()
-        self.scene.render(self.cam)
-        pc.update_canvas()
-        pc.clear_canvas()
 
 
 # 뷰마다 하나씩 가지기
@@ -157,7 +148,7 @@ class Animation:
     # 스프라이트 시트 이미지 배치는 항상 가로로 함 나중에 애니메이션 추가시 곤란함감소
     # -애니메이션 종류: 0:none, 1:반복재생, 2:한번재생멈춤, 3:한번재생다음애니메
 
-    def __init__(self, path, _type, sheet_count, views, offset):
+    def __init__(self, path, _type, sheet_count, offset):
         self.delayTime = 1 / 8.0  # -딜레이 시간
         self.remainDelayTime = 0.0  # -남은 딜레이 시간
 
@@ -245,8 +236,8 @@ class Animator:
         self.isEnd = False
 
     # type 애니메이션 종류: 0:none, 1:반복재생, 2:한번재생멈춤, 3:한번재생다음애니메
-    def load(self, path, type, sheet_count, views, offset):  # 상속받을때 애니메이션들에 알맞는 이미지 넣어주기
-        anim = Animation(path, type, sheet_count, views, offset)
+    def load(self, path, type, sheet_count, offset):  # 상속받을때 애니메이션들에 알맞는 이미지 넣어주기
+        anim = Animation(path, type, sheet_count, offset)
         self.animArr.append(anim)
 
     # 반환값은 지금 끝난 애니메이션 인덱스
@@ -416,5 +407,5 @@ def check_coll_rect(rect, point):
 
 
 def create_windows():
-    global active_view_list
-    active_view_list = [View(0), View(1)]
+    global views
+    views = [View(0), View(1)]

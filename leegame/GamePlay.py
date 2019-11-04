@@ -10,12 +10,13 @@ map_size = (1920, 1080)
 init_text()
 
 player2 = None
+objsList = ObjsList()
 
 
 def change_scene(scene):
     game_framework.change_state(scene)
-    active_view_list[0].change_scene(scene)
-    active_view_list[1].change_scene(scene)
+    views[0].change_scene(scene)
+    views[1].change_scene(scene)
 
 
 # 활성화 된 오브젝트 리스트를 가지고
@@ -77,7 +78,7 @@ class Cursor(DrawObj):
         pos = Player1Controller.pos
         speed = 1500
         img_size = self.anim.animArr[0].get_size()
-        self.mouse = mouse_pos_to_world(pos, active_view_list[0])
+        self.mouse = mouse_pos_to_world(pos, views[0])
         self.pos = self.mouse + np.array([img_size[0] / 2, -img_size[1] / 2])
 
         if Player1Controller.is_down is False:
@@ -93,21 +94,25 @@ class Cursor(DrawObj):
         if dt * speed > 500:
             return
         if pos[0] < 20:
-            active_view_list[0].cam.pos[0] -= dt * speed
+            views[0].cam.pos[0] -= dt * speed
             t_size = -map_size[0] // 2
-            if active_view_list[0].cam.pos[0] < t_size: active_view_list[0].cam.pos[0] = t_size
-        elif pos[0] > active_view_list[0].w - 20:
-            active_view_list[0].cam.pos[0] += dt * speed
+            if views[0].cam.pos[0] < t_size:
+                views[0].cam.pos[0] = t_size
+        elif pos[0] > views[0].w - 20:
+            views[0].cam.pos[0] += dt * speed
             t_size = map_size[0] // 2
-            if active_view_list[0].cam.pos[0] > t_size: active_view_list[0].cam.pos[0] = t_size
+            if views[0].cam.pos[0] > t_size:
+                views[0].cam.pos[0] = t_size
         if pos[1] < 20:
-            active_view_list[0].cam.pos[1] += dt * speed
+            views[0].cam.pos[1] += dt * speed
             t_size = map_size[1] // 2
-            if active_view_list[0].cam.pos[1] > t_size: active_view_list[0].cam.pos[1] = t_size
-        elif pos[1] > active_view_list[0].h - 20:
-            active_view_list[0].cam.pos[1] -= dt * speed
+            if views[0].cam.pos[1] > t_size:
+                views[0].cam.pos[1] = t_size
+        elif pos[1] > views[0].h - 20:
+            views[0].cam.pos[1] -= dt * speed
             t_size = -map_size[1] // 2
-            if active_view_list[0].cam.pos[1] < t_size: active_view_list[0].cam.pos[1] = t_size
+            if views[0].cam.pos[1] < t_size:
+                views[0].cam.pos[1] = t_size
 
         # if pos[0] < 20:
         #     self.target_cam_pos[0] = -map_size[0]//2
@@ -164,9 +169,9 @@ def interact_to_obj(player_idx):
     small_len = 300000000
     for a in interact_obj_list:
         if player_idx == 1:
-            _pos = mouse_pos_to_world(Player1Controller.pos, active_view_list[0])
+            _pos = mouse_pos_to_world(Player1Controller.pos, views[0])
             _pos[1] -= 150
-        elif player_idx == 2:
+        else:
             _pos = player2.pos
         _vec = _pos - a.get_floor_pos()
         _len = sum(x * x for x in _vec)
@@ -200,7 +205,7 @@ class ActorBrain:
     def tick(self, dt):
         self.__move_stair(dt)
         if self.is_move_finished is False and self.is_in_stair is False:
-            self.move_to(dt)
+            self.__move_to(dt)
             return
 
         self.__remain_time -= dt
@@ -213,7 +218,7 @@ class ActorBrain:
                 self.is_next_waypoint_stair = True
             self.is_move_finished = False
 
-    def go_in_stair(self):
+    def __go_in_stair(self):
         self.actor.change_go_in_stair(True)
         self.is_in_stair = True
         self.stair_wait_remain_time = random.uniform(1, 3)
@@ -230,13 +235,13 @@ class ActorBrain:
             self.actor.pos[1] = calculate_floor_height(random.randint(0, 6))
             self.__remain_time = 0  # 계단에서 나오고 바로 움직인다.
 
-    def move_to(self, dt):
+    def __move_to(self, dt):
         delta_x = self.next_waypoint - self.actor.pos[0]
         x = 1 if delta_x > 0 else -1
         if abs(delta_x) < self.actor.speed * dt * 2:
             self.is_move_finished = True
             if self.is_next_waypoint_stair:
-                self.go_in_stair()
+                self.__go_in_stair()
                 return
 
             self.actor.move(0, False)
@@ -250,11 +255,11 @@ class Actor(DrawObj):
         super().__init__(objm)
         self.size[0], self.size[1] = 1, 1
         self.anim = Animator()
-        self.anim.load('img/user_idle.png', 1, 5, views, np.array([80, 0]))
-        self.anim.load('img/user_walk.png', 1, 8, views, np.array([80, 0]))
-        self.anim.load('img/user_run.png', 1, 4, views, np.array([80, 0]))
-        self.anim.load('img/user_die1.png', 2, 9, views, np.array([80, 0]))  # 3 플레이어한테 죽음
-        self.anim.load('img/user_hit.png', 3, 1, views, np.array([80, 0]))  # 4 아야
+        self.anim.load('img/user_idle.png', 1, 5, np.array([80, 0]))
+        self.anim.load('img/user_walk.png', 1, 8, np.array([80, 0]))
+        self.anim.load('img/user_run.png', 1, 4, np.array([80, 0]))
+        self.anim.load('img/user_die1.png', 2, 9, np.array([80, 0]))  # 3 플레이어한테 죽음
+        self.anim.load('img/user_hit.png', 3, 1, np.array([80, 0]))  # 4 아야
         self.speed = 300
         self.is_die = False
         self.is_in_stair = False
@@ -302,7 +307,7 @@ class Actor(DrawObj):
         if self.is_die is True:
             return
 
-        size = np.array([90, 199]) // 2  # 충돌범위 따로 지정
+        size = np.array([90 // 2, 199 // 2])   # 충돌범위 따로 지정
         rect = (self.pos[0] - size[0], self.pos[1] + size[1], self.pos[0] + size[0], self.pos[1] - size[1])
         if check_coll_rect(rect, point):
             self.health -= 1
@@ -321,19 +326,19 @@ class Actor(DrawObj):
 class Player2(DrawObj):
     def __init__(self, objm):
         super().__init__(objm)
-        self.load_img('img/stair_move.png', views)
+        self.load_img('img/stair_move.png')
         self.anim2 = Animator()
-        self.anim2.load('img/ping.png', 1, 2, views, np.array([0, 0]))
+        self.anim2.load('img/ping.png', 1, 2, np.array([0, 0]))
         self.size[0], self.size[1] = 1, 1
         self.anim = Animator()
-        self.anim.load('img/user_idle.png', 1, 5, views, np.array([80, 0]))  # 0
-        self.anim.load('img/user_walk.png', 1, 8, views, np.array([80, 0]))  # 1
-        self.anim.load('img/user_run.png', 1, 4, views, np.array([80, 0]))  # 2
-        self.anim.load('img/user_active.png', 3, 3, views, np.array([80, 0]))  # 3
-        self.anim.load('img/user_die1.png', 2, 9, views, np.array([80, 0]))  # 4 플레이어한테 죽음
-        self.anim.load('img/user_movebody.png', 1, 7, views, np.array([80, 0]))  # 5 시체유기
-        self.anim.load('img/user_attack.png', 3, 7, views, np.array([80, 0]))  # 6 공격
-        self.anim.load('img/user_hit.png', 3, 1, views, np.array([80, 0]))  # 7 아야
+        self.anim.load('img/user_idle.png', 1, 5, np.array([80, 0]))  # 0
+        self.anim.load('img/user_walk.png', 1, 8, np.array([80, 0]))  # 1
+        self.anim.load('img/user_run.png', 1, 4, np.array([80, 0]))  # 2
+        self.anim.load('img/user_active.png', 3, 3, np.array([80, 0]))  # 3
+        self.anim.load('img/user_die1.png', 2, 9, np.array([80, 0]))  # 4 플레이어한테 죽음
+        self.anim.load('img/user_movebody.png', 1, 7, np.array([80, 0]))  # 5 시체유기
+        self.anim.load('img/user_attack.png', 3, 7, np.array([80, 0]))  # 6 공격
+        self.anim.load('img/user_hit.png', 3, 1, np.array([80, 0]))  # 7 아야
         self.anim.animArr[7].delayTime = 1 / 2.0
         self.pos[1] = floor_height[1]
         self.interact_obj = None  # 있을 때 움직이면 인터렉트 오브젝트 비활성화 용
@@ -341,12 +346,11 @@ class Player2(DrawObj):
         self.health = 2
         self.is_die = False
 
-        hw = active_view_list[1].w // 2
-        hh = active_view_list[1].h // 2
-        active_view_list[1].cam.pos = self.pos - np.array([hw, hh - 200])
+        hw = views[1].w // 2
+        hh = views[1].h // 2
+        views[1].cam.pos = self.pos - np.array([hw, hh - 200])
 
     def tick(self, dt):
-        global Player2Controller
 
         self.update_camera(dt)
         self.anim2.tick(dt)  # 머리위에 핑 애니메이션
@@ -360,12 +364,13 @@ class Player2(DrawObj):
 
         speed = 300
 
-        run = Player2Controller.moveTime.check(dt)  # s키 동작 상태확인
+        global KeyController
+        run = KeyController.moveTime.check(dt)  # s키 동작 상태확인
         if run == 1:
             # 인터렉트
             self.anim.play(3, 0)
         else:
-            if Player2Controller.x > 0:
+            if KeyController.x > 0:
                 if self.interact_obj != None:
                     self.interact_obj.cancel_by_move()
                 self.anim.flip = 'h'
@@ -374,7 +379,7 @@ class Player2(DrawObj):
                     speed *= 1.8
                 else:
                     self.anim.play(1)
-            elif Player2Controller.x < 0:
+            elif KeyController.x < 0:
                 if self.interact_obj != None:
                     self.interact_obj.cancel_by_move()
                 self.anim.flip = ''
@@ -387,7 +392,7 @@ class Player2(DrawObj):
                 if self.anim.isEnd:
                     self.anim.play(0)
 
-        self.pos[0] += Player2Controller.x * speed * dt
+        self.pos[0] += KeyController.x * speed * dt
         if end_anim_idx == 3:
             interact_to_obj(2)
         elif end_anim_idx == 4:  # 죽고나면 게임 끝
@@ -441,10 +446,10 @@ class Player2(DrawObj):
             i += 1
 
     def update_camera(self, dt):
-        hw = active_view_list[1].w // 2
-        hh = active_view_list[1].h // 2
+        hw = views[1].w // 2
+        hh = views[1].h // 2
         player_pos = np.array([self.pos[0] - hw, self.pos[1] - hh - 200])
-        active_view_list[1].cam.pos += (player_pos - active_view_list[1].cam.pos) * dt * 3
+        views[1].cam.pos += (player_pos - views[1].cam.pos) * dt * 3
 
     def render(self, cam):
         if self.interact_obj != None:
@@ -468,7 +473,7 @@ class Player2(DrawObj):
 class Building(DrawObj):
     def __init__(self, objm):
         super().__init__(objm)
-        self.load_img('img/map.png', views)
+        self.load_img('img/map.png')
 
 
 stair_list = []
@@ -480,7 +485,7 @@ class Stair(DrawObj):
 
     def __init__(self, objm):
         super().__init__(objm)
-        self.load_img('img/stair.png', views)
+        self.load_img('img/stair.png')
         self.otherStair = None
         stair_list.append(self)
 
@@ -563,9 +568,8 @@ class InteractObj(DrawObj):
                 print("478 : player2 interact! : on tick")
 
     def cancel_by_move(self):
-        if self.is_playing_doing == False:
+        if not self.is_playing_doing:
             return
-        self.is_playing_doing = False
         global player2
         player2.interact_obj = None
         self.anim.play(0)
@@ -627,19 +631,19 @@ def calculate_floor_height(floor):
 
 # 층은 0층부터 시작
 def make_obj(name, x, floor):
-    t = InteractObj(objsList.objM)
+    t = InteractObj(objsList)
     t.pos[0] = x
     t.pos[1] = calculate_floor_height(floor)
     if name == '에어컨':
         t.pos[1] += 100
-    t.anim.load('img/' + name + '_off.png', 1, 1, views, np.array([0, 0]))
+    t.anim.load('img/' + name + '_off.png', 1, 1, np.array([0, 0]))
     if name == '복사기':
-        t.anim.load('img/복사기_on.png', 1, 4, views, np.array([0, 0]))
-        t.anim.load('img/복사기_start.png', 1, 2, views, np.array([0, 0]))
+        t.anim.load('img/복사기_on.png', 1, 4, np.array([0, 0]))
+        t.anim.load('img/복사기_start.png', 1, 2, np.array([0, 0]))
         t.doing_limit_time = 1.0
         t.damage *= 3
     else:
-        t.anim.load('img/' + name + '_on.png', 1, 2, views, np.array([0, 0]))
+        t.anim.load('img/' + name + '_on.png', 1, 2, np.array([0, 0]))
     return t
 
 
@@ -671,9 +675,9 @@ class Ui(DrawObj):
         self.off = off
 
     def render(self, cam):
-        vw = active_view_list[cam.idx].w // 2
-        vh = active_view_list[cam.idx].h
-        ratio1 = active_view_list[cam.idx].w / map_size[0]
+        vw = views[cam.idx].w // 2
+        vh = views[cam.idx].h
+        ratio1 = views[cam.idx].w / map_size[0]
         ww = self.imgs[0].size[0] // 2 * 1.5 * ratio1
         # h = active_view_list[cam.idx].h / map_size[1]
         tem_size = np.array([ratio1, ratio1])
@@ -692,9 +696,9 @@ class UiHp(DrawObj):
         self.side_img_pos = side_img_pos
 
     def render(self, cam):
-        vw = active_view_list[cam.idx].w // 2
-        vh = active_view_list[cam.idx].h
-        ratio1 = active_view_list[cam.idx].w / map_size[0]
+        vw = views[cam.idx].w // 2
+        vh = views[cam.idx].h
+        ratio1 = views[cam.idx].w / map_size[0]
         # h = active_view_list[cam.idx].h / map_size[1]
         tem_size = np.array([self.size[0] * ratio1 + vw, vh - self.size[1] * ratio1])
         tem_pos = np.array([self.value * self.__hp_max_x * ratio1 + vw, vh - self.pos[1] * ratio1])
@@ -727,7 +731,7 @@ def random_actor_generator():
 
 def enter():
     pc.SDL_SetRelativeMouseMode(pc.SDL_TRUE)  # 마우스 화면밖에 못나가게
-    pc.SDL_WarpMouseInWindow(active_view_list[0].window, active_view_list[0].w // 2, active_view_list[0].h // 2)
+    pc.SDL_WarpMouseInWindow(views[0].window, views[0].w // 2, views[0].h // 2)
 
     objsList = ObjsList()
 
@@ -771,18 +775,18 @@ def enter():
     player2 = Player2(objsList.objM)
 
     cursor = Cursor(objsList.objM)
-    cursor.anim.load('img/cursor.png', 1, 1, views, np.array([0, 0]))
-    cursor.anim.load('img/cursor_attack_start.png', 3, 4, views, np.array([0, 0]))
-    cursor.anim.load('img/cursor_attack_doing.png', 1, 2, views, np.array([0, 0]))
-    cursor.anim.load('img/cursor_attack_shot.png', 3, 1, views, np.array([0, 0]))
+    cursor.anim.load('img/cursor.png', 1, 1, np.array([0, 0]))
+    cursor.anim.load('img/cursor_attack_start.png', 3, 4, np.array([0, 0]))
+    cursor.anim.load('img/cursor_attack_doing.png', 1, 2, np.array([0, 0]))
+    cursor.anim.load('img/cursor_attack_shot.png', 3, 1, np.array([0, 0]))
 
     ui_mouse = Ui(objsList.objM)
-    ui_mouse.load_img('img/ui_mouse.png', views)
+    ui_mouse.load_img('img/ui_mouse.png')
     ui_mouse.set_pos(366, 90)
     ui_mouse.set_off((-1, 0))
 
     ui_keyboard = Ui(objsList.objM)
-    ui_keyboard.load_img('img/ui_keyboard.png', views)
+    ui_keyboard.load_img('img/ui_keyboard.png')
     ui_keyboard.set_pos(-366, 90)
     ui_keyboard.set_off((1, 0))
 
@@ -797,18 +801,20 @@ def enter():
     ui_hp2.init(91, 215, 232, 1.0, ui_mouse.pos)
 
     ui_center = Ui(objsList.objM)
-    ui_center.load_img('img/ui_center.png', views)
+    ui_center.load_img('img/ui_center.png')
     ui_center.set_pos(0, 90)
 
     GameManger.init((ui_hp2, ui_hp1))
 
 
 def update(dt):  # View 각자의 그리기를 불러줌
-    # active_view_list[0].cam.pos = mouse_pos_to_world(player1_controller.pos,active_view_list[0])
     GameManger.update(dt)
-    active_view_list[0].tick(dt)
-    active_view_list[0].render()
-    active_view_list[1].render()
+    objsList.tick(dt)
+
+
+def draw():
+    views[0].render()
+    views[1].render()
 
 
 def handle_events():
@@ -829,22 +835,22 @@ def handle_events():
         # 키보드 입력
         if a.type == pc.SDL_KEYDOWN:
             if a.key == 97:  # a
-                Player2Controller.x -= 1
+                KeyController.x -= 1
                 player2.move_stair(1)
             if a.key == 100:  # d
-                Player2Controller.x += 1
+                KeyController.x += 1
                 player2.move_stair(3)
             if a.key == 115:  # s
-                Player2Controller.interact_input(True)
+                KeyController.interact_input(True)
                 player2.move_stair(2)
             if a.key == 119:  # w
                 player2.move_stair(0)
 
             # 카메라 줌 확인용
             if a.key == 61:
-                active_view_list[0].cam.size += 0.5
+                views[0].cam.size += 0.5
             if a.key == 45:
-                active_view_list[0].cam.size -= 0.5
+                views[0].cam.size -= 0.5
 
             # ESC 게임 종료
             if a.key == 27:
@@ -852,8 +858,8 @@ def handle_events():
 
         if a.type == pc.SDL_KEYUP:
             if a.key == 97:  # a
-                Player2Controller.x += 1
+                KeyController.x += 1
             if a.key == 100:  # d
-                Player2Controller.x -= 1
+                KeyController.x -= 1
             if a.key == 115:  # s
-                Player2Controller.interact_input(False)
+                KeyController.interact_input(False)
