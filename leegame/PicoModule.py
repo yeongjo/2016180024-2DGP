@@ -3,15 +3,16 @@ import numpy as np
 import os
 
 is_debug = False
-path = "font/HoonWhitecatR.ttf"
 
+active_scene = None
 active_view = None
+active_view_list = [None,None]
+font01 = None
 
 
-
-def init_text():
+def init_text(text_path="font/HoonWhitecatR.ttf"):
     global font01
-    font01 = pc.load_font(path, 20)
+    font01 = pc.load_font(text_path, 20)
 
 
 def debug_text(str, pos, color=(0, 200, 0)):
@@ -26,7 +27,7 @@ def draw_text(str, pos, color=(255, 255, 255)):
 
 def open_other_canvas(w=int(800), h=int(600), sync=True, full=False):
     # SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
-    caption = ('Pico2D 2 (' + str(w) + 'x' + str(h) + ')' + ' 1000.0 FPS').encode('UTF-8')
+    caption = ('2 (' + str(w) + 'x' + str(h) + ')').encode('UTF-8')
     if full:
         flags = pc.SDL_WINDOW_FULLSCREEN
     else:
@@ -45,35 +46,27 @@ def open_other_canvas(w=int(800), h=int(600), sync=True, full=False):
     if renderer is None:
         renderer = pc.SDL_CreateRenderer(window, -1, pc.SDL_RENDERER_SOFTWARE)
 
-    pc.window = window
-    pc.renderer = renderer
-    pc.canvas_height = h
-    pc.canvas_width = w
-
-    # pc.set_window_renderer(window, renderer)
-
-    pc.clear_canvas()
-    pc.update_canvas()
-
     return window, renderer, w, h
 
 
+# View에서 가짐
 class Camera:
-    # View에서 가짐
-
     size = 1.0
 
-    # idx # 0:마우스, 1:키보드
-
+    # idx  0:마우스, 1:키보드
     def __init__(self, idx):
         self.idx = idx
         self.pos = np.array([0.0, 0.0])
 
 
-class ObjM:
+class ObjsList:
     # 모든 오브젝가지고 tick Render 들어올때마다 루프에서 돌려줌
     # 씬별로 달라야함 다른 씬이 불려오면 다른 오브젝매니저가 불림
     objs = []
+
+    def __init__(self):
+        global active_scene
+        active_scene = self
 
     def render(self, cam):  # Obj.그리기 루프를 통해 물체들을 그림 Camera를 전달함
         for a in self.objs:
@@ -84,58 +77,40 @@ class ObjM:
             a.tick(dt)
 
 
-class Scene:
-    # 랜더랑 틱 함수를 메인에서 불러줘야함
-    objM = ObjM()
-
-    def render(self, cam):
-        self.objM.render(cam)
-
-    def tick(self, dt):
-        self.objM.tick(dt)
-
-
-isFirstOpenCanvas = True
-
-
 class View:
     # 윈도우마다 하나씩 있음
-    # -cam
-    # -SDL_window
-    # -SDL_renderer
+    isFirstOpenCanvas = True
 
-    def __init__(self, idx, scene):
-        global isFirstOpenCanvas
-        self.scene = scene
-        if isFirstOpenCanvas:
+    def __init__(self, idx):
+        global active_scene
+        self.scene = active_scene
+
+        if View.isFirstOpenCanvas:
             win, ren, w, h = pc.open_canvas(1920, 1050)
-            isFirstOpenCanvas = False
+            View.isFirstOpenCanvas = False
         else:
             win, ren, w, h = open_other_canvas(1920, 1050)
+
         pc.hide_lattice()
-        self.window = win
-        self.renderer = ren
+        self.window, self.renderer = win, ren
         self.h = h
         self.w = w
         self.cam = Camera(idx)
 
     def change_scene(self, scene):
-        self.scene = scene
+        global active_scene
+        active_scene = self.scene = scene
 
     def use(self):
         global active_view
         active_view = self
         pc.set_window_renderer(self.window, self.renderer, self.w, self.h)
-        pc.canvas_height = self.w, self.h
 
     def render(self):
         self.use()
         self.scene.render(self.cam)
         pc.update_canvas()
         pc.clear_canvas()
-
-    def tick(self, dt):
-        self.scene.tick(dt)
 
 
 # 뷰마다 하나씩 가지기
@@ -148,15 +123,18 @@ class ImgLoader:
             self.imgs[path] = pc.load_image(path)
         return self.imgs[path]
 
+
 img_loader = (ImgLoader(), ImgLoader())
 
 
+# 화면 밖에 나갔는지 검사 나가면 True 반환
 def is_clip(pos, size):
     hs = size // 2
     # 화면 밖에 나가면 true
     if pos[0] + hs[0] < 0 or pos[0] - hs[0] > active_view.w or pos[1] + hs[1] < 0 or pos[1] - hs[1] > active_view.h:
         return True
     return False
+
 
 class Image:
     # DrawObj에서 호출될듯, DrawObj마다 두개씩 있음
@@ -170,39 +148,35 @@ class Image:
             return
         if self.filp:
             self.img.clip_composite_draw(0, 0, int(self.size[0]), int(self.size[1]), 0, 'h', int(pos[0]), int(pos[1]),
-                                         int(size[0]*self.size[0]), int(size[1]*self.size[1]))
+                                         int(size[0] * self.size[0]), int(size[1] * self.size[1]))
         else:
-            self.img.draw(int(pos[0]), int(pos[1]), int(size[0]*self.size[0]), int(size[1]*self.size[1]))
+            self.img.draw(int(pos[0]), int(pos[1]), int(size[0] * self.size[0]), int(size[1] * self.size[1]))
 
 
 class Animation:
     # 스프라이트 시트 이미지 배치는 항상 가로로 함 나중에 애니메이션 추가시 곤란함감소
     # -애니메이션 종류: 0:none, 1:반복재생, 2:한번재생멈춤, 3:한번재생다음애니메
-    # -이미지의 개수
-    # -ImgIdx
 
-    # -nextAnimIdx
-
-    def __init__(self):
+    def __init__(self, path, _type, sheet_count, views, offset):
         self.delayTime = 1 / 8.0  # -딜레이 시간
         self.remainDelayTime = 0.0  # -남은 딜레이 시간
 
-    def load(self, path, _type, sheet_count, views, offset):
         self.imgs = [0, 0]
         views[0].use()
         self.imgs[0] = img_loader[0].load(path)
         views[1].use()
         self.imgs[1] = img_loader[1].load(path)
+
         self.size = np.array([self.imgs[0].w, self.imgs[0].h])
         self.flip = ''
         self._type = _type
         self.sheetCount = sheet_count
         self.offset = offset
         self.imgIdx = 0
-        self.nextAnimIdx = -1
+        self.next_anim_idx = -1
 
-    def play(self, nextAnimIdx):  # -1이 들어오면 재생 후 종류(1,2)에 맞는 행동을 함
-        self.nextAnimIdx = nextAnimIdx
+    def play(self, next_anim_idx):  # -1이 들어오면 재생 후 종류(1,2)에 맞는 행동을 함
+        self.next_anim_idx = next_anim_idx
         if self._type != 1:
             self.imgIdx = 0
             self.remainDelayTime = 0
@@ -229,8 +203,8 @@ class Animation:
                 return -1
             elif self._type == 3:
                 if self.imgIdx + 1 == self.sheetCount:
-                    t = self.nextAnimIdx
-                    self.nextAnimIdx = 0
+                    t = self.next_anim_idx
+                    self.next_anim_idx = 0
                     self.imgIdx = 0
                     return t
                 else:
@@ -272,8 +246,7 @@ class Animator:
 
     # type 애니메이션 종류: 0:none, 1:반복재생, 2:한번재생멈춤, 3:한번재생다음애니메
     def load(self, path, type, sheet_count, views, offset):  # 상속받을때 애니메이션들에 알맞는 이미지 넣어주기
-        anim = Animation()
-        anim.load(path, type, sheet_count, views, offset)
+        anim = Animation(path, type, sheet_count, views, offset)
         self.animArr.append(anim)
 
     # 반환값은 지금 끝난 애니메이션 인덱스
@@ -301,12 +274,6 @@ class Animator:
     def get_size(self):
         return self.animArr[0].get_size()
 
-
-# 매개변수 하나만 (다른거 실행중에도 바로 넘어가야한다)
-# 걷기, 멈추기, 뛰기 : 상태가 참일때 반복재생, Input에 x값이 변할때만 재생시킴
-# 쓰러지기(2개) : 한번재생 끝
-# 상호작용들 : 한번재생되고 마무리될때 이벤트 호출
-# 두명에서 상호작용하는것들이 있어서 그 때만 아무것도 안보이게하는거도 필요함
 
 # 잠깐 기능 적음
 #
@@ -347,20 +314,18 @@ class DrawObj(TickObj):
 
     def render(self, cam):
         # Camera (위치, 크기) 참조해서 오브젝트 그림
-        # Camera 확인해서 다른 이미지를 그려야함
-        # Camera 인덱스 번호읽어서 다른 플레이별로 색 다른 이미지 읽어도 좋을듯
+        # Camera 확인해서 인덱스별로 다른 이미지 그릴수 있음
         tem_pos, tem_size = self.calculate_pos_size(cam)
         self.imgs[cam.idx].render(tem_pos, tem_size)
         return tem_pos, tem_size
 
-    def load_img(self, path, views):  # init에서 불러주고 init은 __init__ 에서 불러주기로
+    def load_img(self, path, views):
         # 렌더러 2개라 렌더러별로 하나씩 불러줘야함.
         self.imgs = [Image(), Image()]
         views[0].use()
         self.imgs[0].load(path, 0)
         views[1].use()
         self.imgs[1].load(path, 1)
-        #self.size = self.imgs[0].size
 
     def load_animation(self, animation):
         pass
@@ -413,28 +378,30 @@ def mouse_pos_to_world(mouse_pos, view):
 
 
 # 키입력받는 함수에서 플레이어함수를 불러준다
-class Player1Controller:
+class MouseController:
     pos = np.array([0, 0])
     clickTime = TimePassDetecter()  # 클릭용
-    # moveTime = TimePassDetecter()  # 화면이동용
 
     is_down = False
 
-    def mouseInput(self, x, y):
-        Player1Controller.pos[0], Player1Controller.pos[1] = x, y
+    @classmethod
+    def mouse_input(cls, x, y):
+        MouseController.pos[0], MouseController.pos[1] = x, y
 
-    def interact_input(self, isdown):  # ad, s / s키 입력중 ad가 눌리면 누르고있는동작취소
-        Player1Controller.is_down = isdown
+    @classmethod
+    def interact_input(cls, isdown):  # ad, s / s키 입력중 ad가 눌리면 누르고있는동작취소
+        MouseController.is_down = isdown
         if isdown:
-            Player1Controller.clickTime.start(0.3)
+            MouseController.clickTime.start(0.3)
         else:
-            Player1Controller.clickTime.cancel()
+            MouseController.clickTime.cancel()
 
 
-class Player2Controller:
+class KeyController:
     x = 0
     moveTime = TimePassDetecter()  # 달리기용
 
+    @classmethod
     def interact_input(self, isdown):  # ad, s / s키 입력중 ad가 눌리면 누르고있는동작취소
         if isdown:
             self.moveTime.start(0.3)
@@ -446,3 +413,8 @@ def check_coll_rect(rect, point):
     if point[0] < rect[0] or rect[2] < point[0] or point[1] < rect[3] or rect[1] < point[1]:
         return False
     return True
+
+
+def create_windows():
+    global active_view_list
+    active_view_list = [View(0), View(1)]
