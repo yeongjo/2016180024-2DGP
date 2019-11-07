@@ -4,8 +4,8 @@ import Main
 import copy as cp
 import random
 
-floor_height = (218, -139, -500)
-map_size = (1920, 1080)
+EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING = (218, -139, -500)
+MAP_SIZE = (1920, 1080)
 
 init_text()
 
@@ -82,9 +82,9 @@ class Cursor(DrawObj):
         self.pos = self.mouse + np.array([img_size[0] / 2, -img_size[1] / 2])
 
         if Player1Controller.is_down is False:
-            if self.anim.animIdx == 2:
+            if self.anim.anim_idx == 2:
                 self.shot()
-            elif self.anim.animIdx != 3:
+            elif self.anim.anim_idx != 3:
                 self.anim.play(0)
 
         anim_end_idx = self.anim.tick(dt)
@@ -95,25 +95,26 @@ class Cursor(DrawObj):
             return
         if pos[0] < 20:
             views[0].cam.pos[0] -= dt * speed
-            t_size = -map_size[0] // 2
+            t_size = -MAP_SIZE[0] // 2
             if views[0].cam.pos[0] < t_size:
                 views[0].cam.pos[0] = t_size
         elif pos[0] > views[0].w - 20:
             views[0].cam.pos[0] += dt * speed
-            t_size = map_size[0] // 2
+            t_size = MAP_SIZE[0] // 2
             if views[0].cam.pos[0] > t_size:
                 views[0].cam.pos[0] = t_size
         if pos[1] < 20:
             views[0].cam.pos[1] += dt * speed
-            t_size = map_size[1] // 2
+            t_size = MAP_SIZE[1] // 2
             if views[0].cam.pos[1] > t_size:
                 views[0].cam.pos[1] = t_size
         elif pos[1] > views[0].h - 20:
             views[0].cam.pos[1] -= dt * speed
-            t_size = -map_size[1] // 2
+            t_size = -MAP_SIZE[1] // 2
             if views[0].cam.pos[1] < t_size:
                 views[0].cam.pos[1] = t_size
 
+        # 마우스 끝에 가져다 대기만하면 다른 칸으로 이동하는 스크립트
         # if pos[0] < 20:
         #     self.target_cam_pos[0] = -map_size[0]//2
         # if pos[0] > active_view_list[0].w - 20:
@@ -129,7 +130,7 @@ class Cursor(DrawObj):
         check_state = Player1Controller.clickTime.check(dt)
         if check_state == 1:
             interact_to_obj(1)
-        elif check_state == 2 and self.anim.animIdx == 0:
+        elif check_state == 2 and self.anim.anim_idx == 0:
             self.anim.play(1, 2)
 
     def shot(self):
@@ -340,7 +341,7 @@ class Player2(DrawObj):
         self.anim.load('img/user_attack.png', 3, 7, np.array([80, 0]))  # 6 공격
         self.anim.load('img/user_hit.png', 3, 1, np.array([80, 0]))  # 7 아야
         self.anim.animArr[7].delayTime = 1 / 2.0
-        self.pos[1] = floor_height[1]
+        self.pos[1] = EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING[1]
         self.interact_obj = None  # 있을 때 움직이면 인터렉트 오브젝트 비활성화 용
         self.is_in_stair = False
         self.health = 2
@@ -359,7 +360,7 @@ class Player2(DrawObj):
         if self.is_in_stair or self.is_die:  # 죽거나 계단안에 있으면 캐릭터 직접 조종불가
             return
 
-        if self.anim.animIdx == 7:  # 맞는동작중엔 아무것도못하게
+        if self.anim.anim_idx == 7:  # 맞는동작중엔 아무것도못하게
             return
 
         speed = 300
@@ -559,7 +560,7 @@ class InteractObj(DrawObj):
 
         if self.is_playing_doing:
             self.doing_remain_time += dt
-            if self.doing_limit_time < self.doing_remain_time and self.anim.animIdx is not 1:
+            if self.doing_limit_time < self.doing_remain_time and self.anim.anim_idx is not 1:
                 self.is_playing_doing = False
                 self.anim.play(1)
                 global player2
@@ -581,19 +582,19 @@ class InteractObj(DrawObj):
         debug_text(str(self.floor_y), tem_pos + np.array([0, 20]))
 
     def interact(self, player_idx, is_interacting=False):
-        if player_idx == 1 and self.anim.animIdx is not 0:
+        if player_idx == 1 and self.anim.anim_idx is not 0:
             # Player1 Interact!!
             self.anim.play(0)
             GameManger.increase_player1_damage(-self.damage)
         elif player_idx == 2:
-            if self.doing_limit_time >= 0 and self.anim.animIdx is not 1:
+            if self.doing_limit_time >= 0 and self.anim.anim_idx is not 1:
                 # Player2 Interacting~~
                 self.anim.play(2)
                 self.doing_remain_time = 0
                 self.is_playing_doing = True
                 global player2
                 player2.interact_obj = self
-            elif self.anim.animIdx is not 1:
+            elif self.anim.anim_idx is not 1:
                 print("508 : Player2 Interact!!")
                 GameManger.increase_player1_damage(self.damage)
                 self.anim.play(1)
@@ -605,13 +606,13 @@ class InteractObj(DrawObj):
     def get_floor_pos(self):
         if self.floor_y is None:
             floor_offset = 0
-            if self.pos[1] > map_size[1] // 2:
-                t_pos_y = self.pos[1] - map_size[1]
-                floor_offset = map_size[1]
+            if self.pos[1] > MAP_SIZE[1] // 2:
+                t_pos_y = self.pos[1] - MAP_SIZE[1]
+                floor_offset = MAP_SIZE[1]
             else:
                 t_pos_y = self.pos[1]
             # self.floor_y = floor_height[0]
-            for t in floor_height:
+            for t in EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING:
                 self.floor_y = t + floor_offset
                 if t <= t_pos_y:
                     break
@@ -626,7 +627,7 @@ class InteractObj(DrawObj):
 
 # 몇 층의 바닥의 높이가 얼마인지 받는 함수
 def calculate_floor_height(floor):
-    return floor_height[floor % 3] + map_size[1] if floor >= 3 else floor_height[floor]
+    return EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING[floor % 3] + MAP_SIZE[1] if floor >= 3 else EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING[floor]
 
 
 # 층은 0층부터 시작
@@ -652,9 +653,9 @@ obj_name_list = ['냉장고', '복사기', '에어컨', '전등', '정수기', '
 
 def make_random_floor_obj(x, floor):
     wall_size = 400
-    offset = x * map_size[0] - map_size[0] // 2
+    offset = x * MAP_SIZE[0] - MAP_SIZE[0] // 2
     i = wall_size + offset
-    limit_x = map_size[0] - wall_size + offset
+    limit_x = MAP_SIZE[0] - wall_size + offset
     while i < limit_x - 300:
         random_x = i
         obj = make_obj(obj_name_list[random.randint(0, len(obj_name_list) - 1)],
@@ -677,7 +678,7 @@ class Ui(DrawObj):
     def render(self, cam):
         vw = views[cam.idx].w // 2
         vh = views[cam.idx].h
-        ratio1 = views[cam.idx].w / map_size[0]
+        ratio1 = views[cam.idx].w / MAP_SIZE[0]
         ww = self.imgs[0].size[0] // 2 * 1.5 * ratio1
         # h = active_view_list[cam.idx].h / map_size[1]
         tem_size = np.array([ratio1, ratio1])
@@ -698,7 +699,7 @@ class UiHp(DrawObj):
     def render(self, cam):
         vw = views[cam.idx].w // 2
         vh = views[cam.idx].h
-        ratio1 = views[cam.idx].w / map_size[0]
+        ratio1 = views[cam.idx].w / MAP_SIZE[0]
         # h = active_view_list[cam.idx].h / map_size[1]
         tem_size = np.array([self.size[0] * ratio1 + vw, vh - self.size[1] * ratio1])
         tem_pos = np.array([self.value * self.__hp_max_x * ratio1 + vw, vh - self.pos[1] * ratio1])
@@ -716,10 +717,10 @@ class UiHp(DrawObj):
 
 def random_actor_generator():
     for j in range(2):
-        x = j * map_size[0]
+        x = j * MAP_SIZE[0]
         for i in range(6):
             for k in range(random.randint(0, 3)):
-                brain_way_off = map_size[0] // 2 - 500
+                brain_way_off = MAP_SIZE[0] // 2 - 500
                 actor = Actor(objsList)
                 actor.pos[0] = random.uniform(x - brain_way_off, x + brain_way_off)
                 actor.pos[1] = calculate_floor_height(i)
@@ -737,7 +738,7 @@ def enter():
 
     global buildings
     buildings = []
-    building_pos = [[0, map_size[1]], [map_size[0] - 1, map_size[1]], [0, 0], [map_size[0] - 1, 0]]
+    building_pos = [[0, MAP_SIZE[1]], [MAP_SIZE[0] - 1, MAP_SIZE[1]], [0, 0], [MAP_SIZE[0] - 1, 0]]
     stair_pos_x = (649, 540)
     i = 0
     while i < 4:
@@ -747,10 +748,10 @@ def enter():
         if is_right == 1:
             buildings[i].imgs[0].filp = True
             buildings[i].imgs[1].filp = True
-        for y in floor_height:
+        for y in EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING:
             stair = Stair(objsList.objM)
             stair.set_pos(-stair_pos_x[0] + 18 * is_right + buildings[i].pos[0], y + buildings[i].pos[1])
-        for y in floor_height:
+        for y in EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING:
             stair = Stair(objsList.objM)
             stair.set_pos(stair_pos_x[1] + 18 * is_right + buildings[i].pos[0], y + buildings[i].pos[1])
             stair.imgs[1].filp = stair.imgs[0].filp = True
