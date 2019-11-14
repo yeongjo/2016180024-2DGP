@@ -20,9 +20,6 @@ class GameManager:
 
     max_round_end_count = 2
 
-    mouseuser_ready = False
-    keyuser_ready = False
-
     is_paused = False
 
     @classmethod
