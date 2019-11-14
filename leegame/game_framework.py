@@ -74,7 +74,7 @@ def pop_state():
         stack[-1].resume()
 
 
-def exit_game():
+def quit():
     global running
     running = False
 
@@ -86,6 +86,7 @@ def run(start_state):
     start_state.enter()
     while running:
         dt = pc.get_dt()
+        
         stack[-1].handle_events()
         stack[-1].update(dt)
         stack[-1].draw()

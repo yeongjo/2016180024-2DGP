@@ -4,17 +4,24 @@ import os
 
 is_debug = False
 
-active_scene = None
-active_view = None
-views = [None, None]
 font01 = None
 
-
-def init_text(text_path="font/HoonWhitecatR.ttf"):
+# 폰트 로딩 
+def load_defulat_font(text_path="font/HoonWhitecatR.ttf"):
+    assert View.active_view != None #pico2d 초기화하고나서 불러줘야함
     global font01
     font01 = pc.load_font(text_path, 20)
 
 
+def fill_rectangle(x1,y1,x2,y2, r,g,b):
+    view = View.active_view
+    renderer = view.renderer
+    pc.SDL_SetRenderDrawColor(renderer, r, g, b, 255)
+    rect = pc.SDL_Rect(int(x1),int(-y2+view.h-1),int(x2-x1+1),int(y2-y1+1))
+    pc.SDL_RenderFillRect(renderer, rect)
+
+
+# 디버그시에만 보임
 def debug_text(str, pos, color=(0, 200, 0)):
     if (is_debug):
         draw_text(str, pos, color)
@@ -25,18 +32,14 @@ def draw_text(str, pos, color=(255, 255, 255)):
     font01.draw(pos[0], pos[1], str, color)
 
 
-def open_other_canvas(w=int(800), h=int(600), sync=True, full=False):
-    # SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0);
+def _open_other_canvas(w=int(800), h=int(600), sync=True, full=False):
     caption = ('2 (' + str(w) + 'x' + str(h) + ')').encode('UTF-8')
     if full:
         flags = pc.SDL_WINDOW_FULLSCREEN
     else:
         flags = pc.SDL_WINDOW_SHOWN
 
-    # window = pc.SDL_CreateWindow(caption, pc.SDL_WINDOWPOS_UNDEFINED, pc.SDL_WINDOWPOS_UNDEFINED, w, h,
-    #                                 flags)
-    window = pc.SDL_CreateWindow(caption, 0, 30, w, h,
-                                 flags)
+    window = pc.SDL_CreateWindow(caption, 1920, 30, w, h, flags)
     if sync:
         renderer = pc.SDL_CreateRenderer(window, -1,
                                          pc.SDL_RENDERER_ACCELERATED | pc.SDL_RENDERER_PRESENTVSYNC)
@@ -62,11 +65,15 @@ class Camera:
 class ObjsList:
     # 모든 오브젝가지고 tick Render 들어올때마다 루프에서 돌려줌
     # 씬별로 달라야함 다른 씬이 불려오면 다른 오브젝매니저가 불림
-    objs = []
+    active_objs_list = None
 
     def __init__(self):
-        global active_scene
-        active_scene = self
+        self.objs = []
+        global active_objs_list
+        active_objs_list = self
+
+    def active(self):
+        active_objs_list = self
 
     def render(self, cam):  # Obj.그리기 루프를 통해 물체들을 그림 Camera를 전달함
         for a in self.objs:
@@ -80,27 +87,28 @@ class ObjsList:
 class View:
     # 윈도우마다 하나씩 있음
     is_first_open_canvas = True
+    views = (None, None)
+    active_view = None
 
     def __init__(self, idx):
         if View.is_first_open_canvas:
             win, ren, w, h = pc.open_canvas(1920, 1050)
             View.is_first_open_canvas = False
         else:
-            win, ren, w, h = open_other_canvas(1920, 1050)
+            win, ren, w, h = _open_other_canvas(1920, 1050)
 
         pc.hide_lattice()
         self.window, self.renderer = win, ren
-        self.h = h
-        self.w = w
+        self.w, self.h = w, h
         self.cam = Camera(idx)
+        self.use()
 
-    def change_scene(self, scene):
-        global active_scene
-        active_scene = self.scene = scene
+    def change_scene(self):
+        cam_pos = self.cam.pos
+        cam_pos[0], cam_pos[1] = 0, 0
 
     def use(self):
-        global active_view
-        active_view = self
+        View.active_view = self
         pc.set_window_renderer(self.window, self.renderer, self.w, self.h)
 
 
@@ -122,7 +130,7 @@ img_loader = (ImgLoader(), ImgLoader())
 def is_clip(pos, size):
     hs = size // 2
     # 화면 밖에 나가면 true
-    if pos[0] + hs[0] < 0 or pos[0] - hs[0] > active_view.w or pos[1] + hs[1] < 0 or pos[1] - hs[1] > active_view.h:
+    if pos[0] + hs[0] < 0 or pos[0] - hs[0] > View.active_view.w or pos[1] + hs[1] < 0 or pos[1] - hs[1] > View.active_view.h:
         return True
     return False
 
@@ -144,101 +152,114 @@ class Image:
             self.img.draw(int(pos[0]), int(pos[1]), int(size[0] * self.size[0]), int(size[1] * self.size[1]))
 
 
+TYPE_NONE, TYPE_REPEAT, TYPE_ONCE, TYPE_ONCENEXTPLAY = range(4)
+ISPLAYING, ISONCEEND = range(-2, 0)
 class Animation:
     # 스프라이트 시트 이미지 배치는 항상 가로로 함 나중에 애니메이션 추가시 곤란함감소
     # -애니메이션 종류: 0:none, 1:반복재생, 2:한번재생멈춤, 3:한번재생다음애니메
 
     def __init__(self, path, _type, sheet_count, offset):
-        self.delayTime = 1 / 8.0  # -딜레이 시간
-        self.remainDelayTime = 0.0  # -남은 딜레이 시간
+        self.delayTime = 1 / 8.0  # 딜레이 시간 초당 재생될 프레임 8.0
+        self.remainDelayTime = 0.0  # 남은 딜레이 시간
 
         self.imgs = [0, 0]
-        views[0].use()
+        View.views[0].use()
         self.imgs[0] = img_loader[0].load(path)
-        views[1].use()
+        View.views[1].use()
         self.imgs[1] = img_loader[1].load(path)
 
-        self.size = np.array([self.imgs[0].w, self.imgs[0].h])
+        self.img_width, self.img_height = self.imgs[0].w, self.imgs[0].h
+        self.width, self.height = self.img_width / sheet_count, self.img_height
+        self.half_width, self.half_height = self.width//2, self.height//2
         self.flip = ''
         self._type = _type
-        self.sheetCount = sheet_count
+
         self.offset = offset
-        self.imgIdx = 0
+
+        self.sheetCount = sheet_count
+        self.frame = 0
         self.next_anim_idx = -1
 
     def play(self, next_anim_idx):  # -1이 들어오면 재생 후 종류(1,2)에 맞는 행동을 함
         self.next_anim_idx = next_anim_idx
         if self._type != 1:
-            self.imgIdx = 0
+            self.frame = 0
             self.remainDelayTime = 0
 
     def tick(self, dt):
-        # 2일땐 (imgIdx def  1 == 이미지의개수) then return -1
-        # 1일땐 남은 딜레이 시간 > 딜레이시간 then def def ImgIdx%이미지의개수; return -1
-        # 3일땐 (imgIdx def  1 == 이미지의개수) then
-        # t = nextAnimIdx; nextAnimIdx = 0; return nextAnimIdx
+        # TYPE_REPEAT: 한번이라도 끝나면 ISONCEEND
+        # TYPE_ONCE: 끝나면 ISONCEEND
+        # TYPE_ONCENEXTPLAY: 완료시 다음 idx 반환 
         if self.sheetCount == 0:
-            return -1
+            return ISONCEEND
+
         self.remainDelayTime += dt
         if self.remainDelayTime > self.delayTime:
             self.remainDelayTime = 0.0
-            if self._type == 2:
-                if self.imgIdx + 1 == self.sheetCount:
-                    return -1
+            if self._type == TYPE_ONCE:
+                if self.frame + 1 == self.sheetCount:
+                    return ISONCEEND
                 else:
-                    self.imgIdx += 1
-                    self.imgIdx = self.imgIdx % self.sheetCount
-            elif self._type == 1:
-                self.imgIdx += 1
-                self.imgIdx = self.imgIdx % self.sheetCount
-                return -1
-            elif self._type == 3:
-                if self.imgIdx + 1 == self.sheetCount:
+                    self.frame += 1
+                    self.frame = self.frame % self.sheetCount
+            elif self._type == TYPE_REPEAT:
+                self.frame += 1
+                self.frame = self.frame % self.sheetCount
+                return ISONCEEND
+            elif self._type == TYPE_ONCENEXTPLAY:
+                if self.frame + 1 == self.sheetCount:
                     t = self.next_anim_idx
                     self.next_anim_idx = 0
-                    self.imgIdx = 0
+                    self.frame = 0
                     return t
                 else:
-                    self.imgIdx += 1
+                    self.frame += 1
 
             assert self._type != 0
 
-        return -2
+        return ISPLAYING
 
     def render(self, pos, size, cam):  # render에서 종류#0이면 바로 return
-        w = self.size[0] / self.sheetCount
-        tem_size = np.array([w * size[0], self.size[1] * size[1]])
+        w = self.img_width / self.sheetCount
+        tem_size = np.array([w * size[0], self.img_height * size[1]])
         tem_off = self.offset * cam.size
-        if is_clip(np.array([pos[0] + tem_off[0], pos[1] + tem_off[1] + tem_size[1] // 2]), tem_size):
+        tem_pos = np.array([pos[0] + tem_off[0], pos[1] + tem_off[1] + tem_size[1] // 2])
+        if is_clip(tem_pos, tem_size):
             return
         if self.flip == 'h':
             tem_off[0] = -tem_off[0]
-        self.imgs[cam.idx].clip_composite_draw(int(self.imgIdx * w), 0, int(w), self.size[1], 0, self.flip,
+        self.imgs[cam.idx].clip_composite_draw(int(self.frame * w), 0, int(w), self.img_height,
+                                               0, self.flip,
                                                int(pos[0] + tem_off[0]), int(pos[1] + tem_off[1] + tem_size[1] // 2),
                                                int(tem_size[0]), int(tem_size[1]))
 
     def get_size(self):
-        return [self.size[0] / self.sheetCount, self.size[1]]
+        return [self.width, self.height]
+
+    def get_half_size(self):
+        return [self.half_widthh, self.half_height]
+
 
 
 class Animator:
 
     def __init__(self):
-        self.animIdx = 0
-        self.animArr = []
-        self.isEnd = False
+        self.anim_idx = 0
+        self.anim_arr = []
+        self.is_end = False
         self.flip = ''
 
     def play(self, idx, next_anim=-1):  # 두번째 전달시 종료시 자동으로 다음 애니메이션 재생
         # idx에 -1전달시 아무것도 안보임
-        self.animIdx = idx
-        self.animArr[idx].play(next_anim)
-        self.isEnd = False
+        self.anim_idx = idx
+        self.anim_arr[idx].play(next_anim)
+        self.is_end = False
 
     # type 애니메이션 종류: 0:none, 1:반복재생, 2:한번재생멈춤, 3:한번재생다음애니메
+    # TYPE_NONE, TYPE_REPEAT, TYPE_ONCE, TYPE_ONCENEXTPLAY
     def load(self, path, type, sheet_count, offset):  # 상속받을때 애니메이션들에 알맞는 이미지 넣어주기
         anim = Animation(path, type, sheet_count, offset)
-        self.animArr.append(anim)
+        self.anim_arr.append(anim)
 
     # 반환값은 지금 끝난 애니메이션 인덱스
     def tick(self, dt):
@@ -246,40 +267,31 @@ class Animator:
         # play(몇번째) 실행
         # 만약 실행 후 다음 애니메이션이 재생되는 거라면 다음애니메이션 재생후 지금 무슨 애니메이션 끝났는지 알려주기
         # 행동끝난뒤 실행되야하는 기능들이 있음
-        _idx = self.animArr[self.animIdx].tick(dt)
+        animation_state = self.anim_arr[self.anim_idx].tick(dt)
 
-        if _idx == -1:
-            self.isEnd = True
-        elif _idx >= 0:
-            prev_idx = self.animIdx
-            self.play(_idx)
+        if animation_state == ISONCEEND:
+            self.is_end = True
+            return ISONCEEND
+        elif animation_state >= 0:
+            prev_idx = self.anim_idx
+            self.play(animation_state)
             return prev_idx
-        return -1
+        
 
     def render(self, pos, size, cam):
-        if self.animIdx == -1:
+        if self.anim_idx == -1:
             return
-        self.animArr[self.animIdx].flip = self.flip
-        self.animArr[self.animIdx].render(pos, size, cam)
+        self.anim_arr[self.anim_idx].flip = self.flip
+        self.anim_arr[self.anim_idx].render(pos, size, cam)
 
     def get_size(self):
-        return self.animArr[0].get_size()
+        return self.anim_arr[0].get_size()
 
-
-# 잠깐 기능 적음
-#
-# ad
-# s 꾹누르면 달리기
-# 짧게 누르면 상호작용
-#
-# 마우스 이동 화면 외곽에서 오래 있으면 그곳으로 화면이 넘어간다.
-# 좌클릭 오래 누르는 동작시 공격
-# 짧게 누를시 상호작용 버튼 끌때 필요함
 
 class TickObj:
     # 매니저 클래스들이 가짐 tick 당 호출이 필요한친구들
-    def __init__(self, objM):
-        objM.objs.append(self)
+    def __init__(self):
+        active_objs_list.objs.append(self)
 
     def tick(self, dt):  # dt deltaTime
         pass
@@ -290,8 +302,8 @@ class DrawObj(TickObj):
 
     # imgs = [Image(),Image()]  # 그냥 이미지일수도 애니메이터일수도 있음 상속받은 오브젝트에서 결정하기
 
-    def __init__(self, objm):
-        super().__init__(objm)
+    def __init__(self):
+        super().__init__()
         self.pos = np.array([0.0, 0.0])
         self.size = np.array([1, 1])
 
@@ -310,12 +322,12 @@ class DrawObj(TickObj):
         self.imgs[cam.idx].render(tem_pos, tem_size)
         return tem_pos, tem_size
 
-    def load_img(self, path, views):
+    def load_img(self, path):
         # 렌더러 2개라 렌더러별로 하나씩 불러줘야함.
         self.imgs = [Image(), Image()]
-        views[0].use()
+        View.views[0].use()
         self.imgs[0].load(path, 0)
-        views[1].use()
+        View.views[1].use()
         self.imgs[1].load(path, 1)
 
     def load_animation(self, animation):
@@ -400,12 +412,29 @@ class KeyController:
             self.moveTime.cancel()
 
 
-def check_coll_rect(rect, point):
+def collide_rect_point(rect, point):
     if point[0] < rect[0] or rect[2] < point[0] or point[1] < rect[3] or rect[1] < point[1]:
         return False
     return True
 
 
-def create_windows():
-    global views
-    views = [View(0), View(1)]
+def open_windows():
+    View.views = (View(0), View(1))
+
+
+def change_scene(scene):
+    game_framework.change_state(scene)
+
+
+def init():
+    open_windows()
+    load_defulat_font()
+
+def exit():
+    view0 = View.views[0]
+    view0.use()
+    pc.SDL_DestroyRenderer(view0.renderer)
+    pc.SDL_DestroyWindow(view0.window)
+
+    View.views[1].use()
+    pc.close_canvas()

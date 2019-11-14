@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{b5c6fd54-b14c-4655-9a22-0cb75ae21bc0}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>Main.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="GamePlay.py" />
+    <Compile Include="game_framework.py" />
+    <Compile Include="InteractObj.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Main.py" />
+    <Compile Include="module1.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="module2.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PicoModule.py" />
+    <Compile Include="Player2.py" />
+    <Compile Include="Stair.py">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="img\cursor.png" />
+    <Content Include="img\cursor_attack_doing.png" />
+    <Content Include="img\cursor_attack_shot.png" />
+    <Content Include="img\cursor_attack_start.png" />
+    <Content Include="img\map.png" />
+    <Content Include="img\ping.png" />
+    <Content Include="img\ping2.png" />
+    <Content Include="img\stair.png" />
+    <Content Include="img\stair_move.png" />
+    <Content Include="img\UI_center.png" />
+    <Content Include="img\UI_keyboard.png" />
+    <Content Include="img\UI_mouse.png" />
+    <Content Include="img\user_active.png" />
+    <Content Include="img\user_attack.png" />
+    <Content Include="img\user_die1.png" />
+    <Content Include="img\user_die2.png" />
+    <Content Include="img\user_hit.png" />
+    <Content Include="img\user_idle.png" />
+    <Content Include="img\user_movebody.png" />
+    <Content Include="img\user_run.png" />
+    <Content Include="img\user_walk.png" />
+    <Content Include="img\난간.png" />
+    <Content Include="img\냉장고_off.png" />
+    <Content Include="img\냉장고_on.png" />
+    <Content Include="img\복사기_off.png" />
+    <Content Include="img\복사기_on.png" />
+    <Content Include="img\복사기_start.png" />
+    <Content Include="img\에어컨_off.png" />
+    <Content Include="img\에어컨_on.png" />
+    <Content Include="img\전등_off.png" />
+    <Content Include="img\전등_on.png" />
+    <Content Include="img\정수기_off.png" />
+    <Content Include="img\정수기_on.png" />
+    <Content Include="img\컴터_off.png" />
+    <Content Include="img\컴터_on.png" />
+    <Content Include="전기이태륜\191025_230129.png" />
+    <Content Include="전기이태륜\191027_181914.png" />
+    <Content Include="전기이태륜\191029_212812.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="img" />
+    <Folder Include="전기이태륜" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>
