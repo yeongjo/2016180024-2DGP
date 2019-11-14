@@ -26,7 +26,12 @@ class Player2(DrawObj):
         self.anim.load('img/user_attack.png', 3, 7, np.array([80, 0]))  # 6 공격
         self.anim.load('img/user_hit.png', 3, 1, np.array([80, 0]))  # 7 아야
         self.anim.anim_arr[7].delayTime = 1 / 2.0
-        self.pos[1] = EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING[1]
+        self.init()
+
+    def init(self):
+        random_x = (0, 1920)
+        self.pos[0] = random_x[random.randint(0,1)]
+        self.pos[1] = calculate_floor_height(random.randint(0, 5))
         self.interact_obj = None  # 있을 때 움직이면 인터렉트 오브젝트 비활성화 용
         self.is_in_stair = False
         self.health = 2
@@ -132,7 +137,7 @@ class Player2(DrawObj):
             i += 1
 
     def update_camera(self, dt):
-        player_pos = np.array([self.pos[0] - self.half_w, self.pos[1] - self.half_h - 200])
+        player_pos = np.array([self.pos[0] - self.half_w, self.pos[1] - self.half_h + 100])
         View.views[1].cam.pos += (player_pos - View.views[1].cam.pos) * dt * 3
 
     def render(self, cam):

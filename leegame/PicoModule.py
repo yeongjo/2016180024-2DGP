@@ -69,11 +69,19 @@ class ObjsList:
 
     def __init__(self):
         self.objs = []
-        global active_objs_list
-        active_objs_list = self
+
+    def add_object(self, o):
+        self.objs.append(o)
+
+    def remove_object(self, o):
+        #for i in range(len(self.objs)):
+        objs = self.objs
+        if o in objs:
+            objs.remove(o)
+            del o
 
     def active(self):
-        active_objs_list = self
+        ObjsList.active_objs_list = self
 
     def render(self, cam):  # Obj.그리기 루프를 통해 물체들을 그림 Camera를 전달함
         for a in self.objs:
@@ -292,7 +300,7 @@ class Animator:
 class TickObj:
     # 매니저 클래스들이 가짐 tick 당 호출이 필요한친구들
     def __init__(self):
-        active_objs_list.objs.append(self)
+        ObjsList.active_objs_list.objs.append(self)
 
     def tick(self, dt):  # dt deltaTime
         pass

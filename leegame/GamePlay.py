@@ -22,6 +22,10 @@ obj_name_list = ['냉장고', '복사기', '에어컨', '전등', '정수기', '
 def calculate_floor_height(floor):
     return EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING[floor % 3] + MAP_HEIGHT if floor >= 3 else EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING[floor]
 
+def restart_game():
+    Actor.clear_actors()
+    Player2.this.init()
+
 from GameManager import GameManager
 from Player2 import Player2
 from Stair import Stair
@@ -117,7 +121,6 @@ def make_objs():
             make_random_floor_obj(j, i)
 
     random_actor_generator()
-
     Player2()
 
     # ui ----------------------------
@@ -153,6 +156,11 @@ def make_objs():
     ui_center.load_img('img/ui_center.png')
     ui_center.set_pos(0, 90)
 
+
+
+    
+
+is_enter_before = False
 # -----------------------------------main code start-----------------------------------
 
 def enter():
@@ -165,9 +173,15 @@ def enter():
         objsList = ObjsList()
     objsList.active()
 
-    make_objs()
+    global is_enter_before
+    if not is_enter_before:
+        make_objs()
+    else:
+        restart_game()
 
     GameManager.init((ui_hp2, ui_hp1))
+
+    is_enter_before = True
 
 
 def update(dt):  # View 각자의 그리기를 불러줌
@@ -192,6 +206,10 @@ def handle_events():
         if a.type == pc.SDL_QUIT:
             game_framework.exit_game()
 
+        # ESC 게임 종료
+        if a.type == pc.SDL_KEYDOWN and a.key == pc.SDLK_ESCAPE:
+            game_framework.quit()
+
         # 마우스 입력
         if a.type == pc.SDL_MOUSEBUTTONDOWN and a.button == 1:
             MouseController.interact_input(True)
@@ -201,34 +219,38 @@ def handle_events():
         if a.type == pc.SDL_MOUSEBUTTONUP and a.button == 1:
             MouseController.interact_input(False)
 
-        # 키보드 입력
-        if a.type == pc.SDL_KEYDOWN:
-            if a.key == 97:  # a
-                KeyController.x -= 1
-                Player2.this.move_stair(Player2.KEY_A)
-            if a.key == 100:  # d
-                KeyController.x += 1
-                Player2.this.move_stair(Player2.KEY_D)
-            if a.key == 115:  # s
-                KeyController.interact_input(True)
-                Player2.this.move_stair(Player2.KEY_S)
-            if a.key == 119:  # w
-                Player2.this.move_stair(Player2.KEY_W)
 
-            # 카메라 줌 확인용
-            if a.key == 61:
-                View.views[0].cam.size += 0.5
-            if a.key == 45:
-                View.views[0].cam.size -= 0.5
+        if not GameManager.is_paused:
+            # 키보드 입력
+            if a.type == pc.SDL_KEYDOWN:
+                if a.key == 97:  # a
+                    KeyController.x -= 1
+                    Player2.this.move_stair(Player2.KEY_A)
+                if a.key == 100:  # d
+                    KeyController.x += 1
+                    Player2.this.move_stair(Player2.KEY_D)
+                if a.key == 115:  # s
+                    KeyController.interact_input(True)
+                    Player2.this.move_stair(Player2.KEY_S)
+                if a.key == 119:  # w
+                    Player2.this.move_stair(Player2.KEY_W)
 
-            # ESC 게임 종료
-            elif a.key == pc.SDLK_ESCAPE:
-                game_framework.quit()
+                # 카메라 줌 확인용
+                if a.key == 61:
+                    View.views[0].cam.size += 0.5
+                if a.key == 45:
+                    View.views[0].cam.size -= 0.5
 
-        if a.type == pc.SDL_KEYUP:
-            if a.key == 97:  # a
-                KeyController.x += 1
-            if a.key == 100:  # d
-                KeyController.x -= 1
-            if a.key == 115:  # s
-                KeyController.interact_input(False)
+                
+
+
+            if a.type == pc.SDL_KEYUP:
+                if a.key == 97:  # a
+                    KeyController.x += 1
+                if a.key == 100:  # d
+                    KeyController.x -= 1
+                if a.key == 115:  # s
+                    KeyController.interact_input(False)
+
+        else:
+            Player2.this.is_die = True

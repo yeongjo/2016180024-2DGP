@@ -20,6 +20,12 @@ class Actor(DrawObj):
 
         Actor.actor_list.append(self)
 
+    def clear_actors():
+        actor_list = Actor.actor_list
+        for a in actor_list:
+            del a
+        actor_list.clear()
+
     def set_brain(self, brain):
         self.brain = brain
 

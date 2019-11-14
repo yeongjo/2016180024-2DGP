@@ -31,6 +31,9 @@
     <Compile Include="Cursor.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Font.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="GameManager.py">
       <SubType>Code</SubType>
     </Compile>
@@ -54,7 +57,13 @@
     <Compile Include="UI.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="UiBoardcast.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="UiHp.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="VictoryBoardcast.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

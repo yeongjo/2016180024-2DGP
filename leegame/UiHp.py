@@ -1,5 +1,7 @@
 from PicoModule import *
 from GamePlay import *
+from VictoryBoardcast import VictoryBoardcast
+from VictoryBoardcast import EndVictoryBoardcast
 
 class UiPlayer(DrawObj):
 
@@ -11,34 +13,55 @@ class UiPlayer(DrawObj):
         self.value = 1
         self.side_img_pos = side_img_pos
         self.win_count = 0
+        self.imgs = [Image(), Image()]
 
         if idx == 1:
-            self.load_img("img/1_win.png")
-            self.win_img = self.imgs
-            self.load_img("img/1_lose.png")
-            self.lose_img = self.imgs
+            View.views[0].use()
+            self.imgs[0].load("img/1_win.png", 0)
+            View.views[1].use()
+            self.imgs[1].load("img/2_lose.png", 1)
         else:
-            self.load_img("img/2_win.png")
-            self.win_img = self.imgs
-            self.load_img("img/2_lose.png")
-            self.lose_img = self.imgs
+            View.views[0].use()
+            self.imgs[0].load("img/1_lose.png", 0)
+            View.views[1].use()
+            self.imgs[1].load("img/2_win.png", 1)
+
+        self.calculate_healthbar()
 
     def render(self, cam):
-        view = View.active_view
-        vw = view.half_w
-        vh = view.h
-        ratio1 = view.w / MAP_WIDTH
-        # h = active_view_list[cam.idx].h / MAP_HEIGHT
-        tem_size = np.array([self.size[0] * ratio1 + vw, vh - self.size[1] * ratio1])
-        tem_pos = np.array([self.value * self.__hp_max_x * ratio1 + vw, vh - self.pos[1] * ratio1])
+        tem_pos = self.tem_pos
+        tem_size = self.tem_size
         fill_rectangle(tem_pos[0], tem_pos[1], tem_size[0], tem_size[1], self.color[0], self.color[1],
                               self.color[2])
         draw_text(str(self.win_count), tem_pos)
 
+    def calculate_healthbar(self):
+        self.side_img_pos[0] = self.value * self.__hp_max_x + self.idx * -3
+
+        view = View.active_view
+        vw = view.half_w
+        vh = view.h
+        ratio1 = view.w / MAP_WIDTH
+
+        self.tem_size = np.array([self.size[0] * ratio1 + vw, vh - self.size[1] * ratio1])
+        self.tem_pos = np.array([self.value * self.__hp_max_x * ratio1 + vw, vh - self.pos[1] * ratio1])
+
+    # 밖으로 빼야되는데 너무 귀찮다
     def take_damage(self, amount):
         self.value -= amount
-        self.side_img_pos[0] = self.value * self.__hp_max_x + self.idx * -3
         if self.value <= 0:
             self.value = 0
+
+        self.calculate_healthbar()
+
+        if self.value <= 0:
             # call end
             GameManager.round_end(self.idx)
+
+    def boardcast(self,is_win, is_end=False):
+        view = View.active_view
+        center = [view.half_w, view.half_h]
+        if is_end:
+            EndVictoryBoardcast(self.imgs, center, 2.0)
+        else:
+            VictoryBoardcast(self.imgs, center, 1.0)
