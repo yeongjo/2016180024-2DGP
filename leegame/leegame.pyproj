@@ -34,6 +34,9 @@
     <Compile Include="Font.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="GameEndScene.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="GameManager.py">
       <SubType>Code</SubType>
     </Compile>

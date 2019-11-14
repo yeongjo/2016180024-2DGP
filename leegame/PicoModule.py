@@ -103,10 +103,10 @@ class View:
 
     def __init__(self, idx):
         if View.is_first_open_canvas:
-            win, ren, w, h = pc.open_canvas(1920, 1050)
+            win, ren, w, h = pc.open_canvas(1920, 900)
             View.is_first_open_canvas = False
         else:
-            win, ren, w, h = _open_other_canvas(1920, 1050)
+            win, ren, w, h = _open_other_canvas(1920, 900)
 
         pc.hide_lattice()
         self.window, self.renderer = win, ren
@@ -437,6 +437,9 @@ def open_windows():
 def change_scene(scene):
     game_framework.change_state(scene)
 
+def get_center():
+    view = View.active_view
+    return [view.half_w, view.half_h]
 
 def init():
     open_windows()

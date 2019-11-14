@@ -64,4 +64,4 @@ class UiPlayer(DrawObj):
         if is_end:
             EndVictoryBoardcast(self.imgs, center, 2.0)
         else:
-            VictoryBoardcast(self.imgs, center, 1.0)
+            VictoryBoardcast(self.imgs, center, 2.0)

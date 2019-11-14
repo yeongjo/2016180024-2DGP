@@ -23,7 +23,9 @@ def calculate_floor_height(floor):
     return EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING[floor % 3] + MAP_HEIGHT if floor >= 3 else EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING[floor]
 
 def restart_game():
+    if not is_enter_before: return
     Actor.clear_actors()
+    random_actor_generator()
     Player2.this.init()
 
 from GameManager import GameManager
@@ -166,18 +168,17 @@ is_enter_before = False
 def enter():
     #pc.SDL_SetRelativeMouseMode(pc.SDL_TRUE)  # 마우스 화면밖에 못나가게
     
-    pc.SDL_WarpMouseInWindow(View.active_view.window, View.active_view.w // 2, View.active_view.h // 2)
+    pc.SDL_WarpMouseInWindow(View.views[0].window, View.views[0].w // 2, View.views[0].h // 2)
     
     global objsList
     if objsList == None:
         objsList = ObjsList()
     objsList.active()
 
+
     global is_enter_before
     if not is_enter_before:
         make_objs()
-    else:
-        restart_game()
 
     GameManager.init((ui_hp2, ui_hp1))
 
@@ -204,7 +205,7 @@ def handle_events():
     events = pc.get_events()
     for a in events:
         if a.type == pc.SDL_QUIT:
-            game_framework.exit_game()
+            game_framework.quit()
 
         # ESC 게임 종료
         if a.type == pc.SDL_KEYDOWN and a.key == pc.SDLK_ESCAPE:

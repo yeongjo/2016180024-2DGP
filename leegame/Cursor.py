@@ -1,5 +1,6 @@
 from PicoModule import *
 from GamePlay import *
+from Actor import Actor
 
 class Cursor(DrawObj):
 
@@ -16,7 +17,7 @@ class Cursor(DrawObj):
         img_size = self.anim.anim_arr[0].get_size()
         
         self.mouse = mouse_pos_to_world(pos, View.views[0])
-        self.pos = self.mouse + np.array([img_size[0] / 2, -img_size[1] / 2])
+        self.pos = self.mouse + np.array([img_size[0] / 2-10, -img_size[1] / 2-30])
 
         if MouseController.is_down is False:
             if self.anim.anim_idx == 2:

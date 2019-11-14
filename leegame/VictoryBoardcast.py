@@ -1,5 +1,6 @@
 from UiBoardcast import *
 
+
 class VictoryBoardcast(ImgBoardcast):
     def exit(self):
         win1 = GameManager.player1_win_count
@@ -52,3 +53,6 @@ class EndRoundBoardcast(RoundBoardcast):
     def exit(self):
         GameManager.end_boardcast()
         print("game end")
+        import game_framework
+        import GameEndScene
+        game_framework.change_state(GameEndScene)

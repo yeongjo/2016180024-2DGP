@@ -36,6 +36,7 @@ class Player2(DrawObj):
         self.is_in_stair = False
         self.health = 2
         self.is_die = False
+        self.is_end = False
 
         self.half_w = View.views[1].w // 2
         self.half_h = View.views[1].h // 2
@@ -46,6 +47,11 @@ class Player2(DrawObj):
         self.update_camera(dt)
         self.anim2.tick(dt)  # 머리위에 핑 애니메이션
         end_anim_idx = self.anim.tick(dt)
+
+        if self.is_die and end_anim_idx == ISONCEEND and not self.is_end: # 죽는게 끝나면
+            print("키보드 플레이어 죽음")
+            self.is_end = True
+            GameManager.round_end(1)
 
         if self.is_in_stair or self.is_die:  # 죽거나 계단안에 있으면 캐릭터 직접 조종불가
             return
