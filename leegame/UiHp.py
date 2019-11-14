@@ -1,0 +1,44 @@
+from PicoModule import *
+from GamePlay import *
+
+class UiPlayer(DrawObj):
+
+    # idx: -1, 1 (-1이 키보드 유저)
+    def init(self, r, g, b, idx, side_img_pos):
+        self.color = (r, g, b)
+        self.idx = idx
+        self.__hp_max_x = 369 * idx
+        self.value = 1
+        self.side_img_pos = side_img_pos
+        self.win_count = 0
+
+        if idx == 1:
+            self.load_img("img/1_win.png")
+            self.win_img = self.imgs
+            self.load_img("img/1_lose.png")
+            self.lose_img = self.imgs
+        else:
+            self.load_img("img/2_win.png")
+            self.win_img = self.imgs
+            self.load_img("img/2_lose.png")
+            self.lose_img = self.imgs
+
+    def render(self, cam):
+        view = View.active_view
+        vw = view.half_w
+        vh = view.h
+        ratio1 = view.w / MAP_WIDTH
+        # h = active_view_list[cam.idx].h / MAP_HEIGHT
+        tem_size = np.array([self.size[0] * ratio1 + vw, vh - self.size[1] * ratio1])
+        tem_pos = np.array([self.value * self.__hp_max_x * ratio1 + vw, vh - self.pos[1] * ratio1])
+        fill_rectangle(tem_pos[0], tem_pos[1], tem_size[0], tem_size[1], self.color[0], self.color[1],
+                              self.color[2])
+        draw_text(str(self.win_count), tem_pos)
+
+    def take_damage(self, amount):
+        self.value -= amount
+        self.side_img_pos[0] = self.value * self.__hp_max_x + self.idx * -3
+        if self.value <= 0:
+            self.value = 0
+            # call end
+            GameManager.round_end(self.idx)

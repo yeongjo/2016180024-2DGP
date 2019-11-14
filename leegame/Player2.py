@@ -82,12 +82,12 @@ class Player2(DrawObj):
         if end_anim_idx == 3:
             InteractObj.interact_to_obj(2)
         elif end_anim_idx == 4:  # 죽고나면 게임 끝
-            GameManger.game_end(1)
+            GameManager.round_end(1)
 
         self.check_stair()  # 계단에 부딪혔는지 확인
 
     def check_take_damage(self, point):
-        if self.is_die is True:
+        if self.is_die:
             return
 
         size = np.array([90, 199]) // 2

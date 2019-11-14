@@ -19,6 +19,21 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Actor.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ActorBrain.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Building.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Cursor.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GameManager.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="GamePlay.py" />
     <Compile Include="game_framework.py" />
     <Compile Include="InteractObj.py">
@@ -34,6 +49,12 @@
     <Compile Include="PicoModule.py" />
     <Compile Include="Player2.py" />
     <Compile Include="Stair.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UI.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UiHp.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

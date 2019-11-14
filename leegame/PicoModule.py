@@ -10,7 +10,7 @@ font01 = None
 def load_defulat_font(text_path="font/HoonWhitecatR.ttf"):
     assert View.active_view != None #pico2d 초기화하고나서 불러줘야함
     global font01
-    font01 = pc.load_font(text_path, 20)
+    font01 = pc.load_font(text_path, 55)
 
 
 def fill_rectangle(x1,y1,x2,y2, r,g,b):
@@ -100,6 +100,7 @@ class View:
         pc.hide_lattice()
         self.window, self.renderer = win, ren
         self.w, self.h = w, h
+        self.half_w, self.half_h = w//2, h//2
         self.cam = Camera(idx)
         self.use()
 

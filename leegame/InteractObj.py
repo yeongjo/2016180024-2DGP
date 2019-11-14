@@ -29,7 +29,7 @@ class InteractObj(DrawObj):
                 self.anim.play(1)
                 from Player2 import Player2
                 Player2.this.interact_obj = None
-                GameManger.increase_player2_damage(self.damage)
+                GameManager.increase_player2_damage(self.damage)
                 print("interactObj 32 : Player2.this interact!")
 
     def cancel_by_move(self):
@@ -52,7 +52,7 @@ class InteractObj(DrawObj):
         if player_idx == 1 and self.anim.anim_idx is not 0:
             # Player1 Interact!!
             self.anim.play(0)
-            GameManger.increase_player2_damage(-self.damage)
+            GameManager.increase_player2_damage(-self.damage)
         elif player_idx == 2:
             if self.doing_limit_time >= 0 and self.anim.anim_idx is not 1:
                 # Player2 Interacting~~
@@ -63,7 +63,7 @@ class InteractObj(DrawObj):
                 Player2.this.interact_obj = self
             elif self.anim.anim_idx is not 1:
                 print("interact 63 : Player2 Interact!!")
-                GameManger.increase_player2_damage(self.damage)
+                GameManager.increase_player2_damage(self.damage)
                 self.anim.play(1)
             # else:
             #     self.anim.play(2)
