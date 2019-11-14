@@ -13,12 +13,15 @@ def load_defulat_font(text_path="font/HoonWhitecatR.ttf"):
     font01 = pc.load_font(text_path, 55)
 
 
-def fill_rectangle(x1,y1,x2,y2, r,g,b):
+def fill_rectangle(x1,y1,x2,y2, r,g,b,a=255):
     view = View.active_view
     renderer = view.renderer
-    pc.SDL_SetRenderDrawColor(renderer, r, g, b, 255)
+    pc.SDL_SetRenderDrawColor(renderer, r, g, b, a)
     rect = pc.SDL_Rect(int(x1),int(-y2+view.h-1),int(x2-x1+1),int(y2-y1+1))
+    if(a != 255):
+        pc.SDL_SetRenderDrawBlendMode(renderer, pc.SDL_BLENDMODE_BLEND)
     pc.SDL_RenderFillRect(renderer, rect)
+    pc.SDL_SetRenderDrawBlendMode(renderer, pc.SDL_BLENDMODE_NONE)
 
 
 # 디버그시에만 보임

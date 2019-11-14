@@ -19,6 +19,7 @@ class RoundBoardcast(TextBoardcast):
 
     def render(self, cam):
         off = 300
+        self.render_rect()
         import Font
         Font.active_font(1)
         pos = cp.copy(self.pos)
@@ -39,7 +40,13 @@ class EndVictoryBoardcast(VictoryBoardcast):
         win2 = GameManager.player2_win_count
 
         text = str(win1) + " " + str(win2)
-        EndRoundBoardcast(text, self.pos, 2.0)
+        tem = EndRoundBoardcast(text, self.pos, 2.0)
+        tem.alpha = int(self.alpha)
+
+    def tick(self, dt):
+        super().tick(dt)
+        self.alpha += (255-self.alpha)*1*dt
+        if self.alpha > 255: self.alpha = 255
 
 class EndRoundBoardcast(RoundBoardcast):
     def exit(self):
