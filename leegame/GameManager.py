@@ -2,7 +2,7 @@ from PicoModule import *
 from GamePlay import *
 
 player2_multiply = 0
-player1_multiply = 1.1
+player1_multiply = 0
 
 # 활성화 된 오브젝트 리스트를 가지고
 # UI 상태 값에 업데이트 시켜준다.

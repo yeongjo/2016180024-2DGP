@@ -8,13 +8,15 @@ objsList = None
 
 def make_objs():
     background = DrawObj()
-    background.load_img("img/GameEnd.png")
+    
     background.pos = np.array(get_center())
 
     victory_img = DrawObj()
     if GameManager.get_win_player_idx() == 1:
+        background.load_img("img/leewin.png")
         victory_img.imgs = GameManager.mouseuser_ui.imgs
     else:
+        background.load_img("img/enemywin.png")
         victory_img.imgs = GameManager.keyuser_ui.imgs
 
     

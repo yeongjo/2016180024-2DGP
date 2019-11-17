@@ -6,7 +6,7 @@ from InteractObj import InteractObj
 
 class Player2(DrawObj):
     KEY_W, KEY_A, KEY_S, KEY_D = range(4)
-
+    IDLE, WALK, RUN, ACTIVE, DIE, MOVEBODY, ATTACK, HIT = range(8)
     this = None
 
     def __init__(self):
