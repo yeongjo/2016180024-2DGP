@@ -6,6 +6,9 @@ is_debug = False
 
 font01 = None
 
+Screen_Width = 1920
+Screen_Height = 1000
+
 # 폰트 로딩 
 def load_defulat_font(text_path="font/HoonWhitecatR.ttf"):
     assert View.active_view != None #pico2d 초기화하고나서 불러줘야함
@@ -103,10 +106,10 @@ class View:
 
     def __init__(self, idx):
         if View.is_first_open_canvas:
-            win, ren, w, h = pc.open_canvas(1920, 900)
+            win, ren, w, h = pc.open_canvas(Screen_Width, Screen_Height)
             View.is_first_open_canvas = False
         else:
-            win, ren, w, h = _open_other_canvas(1920, 900)
+            win, ren, w, h = _open_other_canvas(Screen_Width, Screen_Height)
 
         pc.hide_lattice()
         self.window, self.renderer = win, ren

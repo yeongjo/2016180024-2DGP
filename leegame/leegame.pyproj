@@ -54,9 +54,13 @@
     </Compile>
     <Compile Include="PicoModule.py" />
     <Compile Include="Player2.py" />
+    <Compile Include="PlayerReadyChecker.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Stair.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TitleScene.py" />
     <Compile Include="UI.py">
       <SubType>Code</SubType>
     </Compile>

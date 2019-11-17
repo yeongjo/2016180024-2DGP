@@ -7,15 +7,19 @@ class UiBoardcast(DrawObj):
         super().__init__()
         self.pos = pos
         self.alpha = 100
+        self.is_removed = False
 
     def exit(self):
         pass
 
     def tick(self, dt):
+        if self.is_removed:
+            ObjsList.active_objs_list.remove_object(self)
+            return
         self.remain_time -= dt
         if self.remain_time <= 0:
+            self.is_removed = True
             self.exit()
-            ObjsList.active_objs_list.remove_object(self)
 
     def render(self, cam):
         assert(True) # 상속받아서만 쓰기

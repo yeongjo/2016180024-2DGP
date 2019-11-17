@@ -1,13 +1,24 @@
 from PicoModule import *
 import game_framework
 import PlayerReadyChecker as prc
+import TitleScene as NextScene
+from GameManager import GameManager
 
 objsList = None
 
 def make_objs():
-    ui_mouse = DrawObj()
-    ui_mouse.load_img('img/ui_mouse.png')
-    ui_mouse.pos = np.array(get_center())
+    background = DrawObj()
+    background.load_img("img/GameEnd.png")
+    background.pos = np.array(get_center())
+
+    victory_img = DrawObj()
+    if GameManager.get_win_player_idx() == 1:
+        victory_img.imgs = GameManager.mouseuser_ui.imgs
+    else:
+        victory_img.imgs = GameManager.keyuser_ui.imgs
+
+    
+    victory_img.pos = np.array(get_center())
 
 is_enter_before = False
 is_ready_all = False
@@ -15,6 +26,11 @@ ready_time = 1
 ready_remain_time = 1
 
 def enter():
+    View.views[0].cam.pos[0] = 0
+    View.views[0].cam.pos[1] = 0
+    View.views[1].cam.pos[0] = 0
+    View.views[1].cam.pos[1] = 0
+
     global objsList
     if objsList == None:
         objsList = ObjsList()
@@ -38,19 +54,23 @@ def update(dt):  # View 각자의 그리기를 불러줌
         global ready_remain_time
         ready_remain_time -= dt
         if ready_remain_time <= 0:
-            game_framework.change_state()
+            ready_remain_time = -1;
+            game_framework.change_state(NextScene)
 
 
 def draw():
+    i = 0
     for view in View.views:
-        view.use()
-        objsList.render(view.cam)
         pc.update_canvas()
         pc.clear_canvas()
+        view.use()
+        objsList.render(view.cam)
 
-        render_key_status()
-    View.views[0].use()
-    render_mouse_status()
+        text_pos = get_center()
+        text_pos[1] -= 300
+        prc.render_status(i, text_pos)
+
+        i += 1
 
 def exit():
     pass
@@ -70,5 +90,5 @@ def handle_events():
             prc.set_mouse_input()
 
         if a.type == pc.SDL_KEYDOWN:
-            if a.key == SDLK_W or a.key == SDLK_A or a.key == SDLK_S or a.key == SDLK_D:
+            if a.key == 97 or a.key == 100 or a.key == 115 or a.key == 119:
                 prc.set_key_input()

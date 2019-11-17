@@ -67,6 +67,13 @@ class GameManager:
         cls.__is_show_round_boardcast = True
         cls.is_paused = True
 
+    # 1: Mouse, 2:Keyboard
+    @classmethod
+    def get_win_player_idx(cls):
+        if cls.player2_win_count >= cls.max_round_end_count:
+            return 2
+        else:
+            return 1
 
     @classmethod
     def game_end(cls, idx):

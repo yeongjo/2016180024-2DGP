@@ -254,4 +254,4 @@ def handle_events():
                     KeyController.interact_input(False)
 
         else:
-            Player2.this.is_die = True
+            Player2.this.is_end = True
