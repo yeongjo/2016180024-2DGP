@@ -99,6 +99,7 @@ class LeafNode(Node):
         print("ERROR: you cannot add children node to leaf node")
 
     def run(self):
+        print(self.name)
         return self.func()
 
     def print(self):

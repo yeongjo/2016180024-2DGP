@@ -1,5 +1,6 @@
 import game_framework
 from pico2d import *
+import main_state
 
 import game_world
 
@@ -114,6 +115,7 @@ class Boy:
         self.event_que = []
         self.cur_state = WalkingState
         self.cur_state.enter(self, None)
+        self.health = 0
 
     def get_bb(self):
         # fill here
@@ -131,12 +133,19 @@ class Boy:
             self.cur_state = next_state_table[self.cur_state][event]
             self.cur_state.enter(self, event)
 
+        ball = main_state.get_collide_ball(self)
+        if ball:
+            main_state.remove_ball(ball)
+            self.health += ball.health
+
     def draw(self):
         self.cur_state.draw(self)
         self.font.draw(self.x - 60, self.y + 50, '(Time: %3.2f)' % get_time(), (255, 255, 0))
         #fill here
         draw_rectangle(*self.get_bb())
         #debug_print('Velocity :' + str(self.velocity) + '  Dir:' + str(self.dir) + ' Frame Time:' + str(game_framework.frame_time))
+        import Font
+        Font.debug_print(str(self.health), self.x, self.y)
 
     def handle_event(self, event):
         if (event.type, event.key) in key_event_table:
