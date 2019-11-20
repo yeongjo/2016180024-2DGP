@@ -39,6 +39,7 @@ class Zombie:
         self.patrol_order = 1
         self.target_x, self.target_y = None, None
         self.x, self.y = self.patrol_positions[0]
+        self.health = 10
 
 
         self.load_images()
@@ -81,8 +82,8 @@ class Zombie:
         return BehaviorTree.SUCCESS
 
     def away_from_player(self):
-        self.speed = RUN_SPEED_PPS
-        self.dir = -self.dir
+        self.speed = RUN_SPEED_PPS * 1.5
+        self.dir = self.dir + math.pi
         self.calculate_current_position()
         return BehaviorTree.SUCCESS
 
@@ -104,24 +105,27 @@ class Zombie:
             return BehaviorTree.FAIL
 
     def find_ball(self):
-        boy = main_state.get_boy()
-        distance = (boy.x - self.x) ** 2 + (boy.y - self.y) ** 2
-        if distance < (PIXEL_PER_METER * 8) ** 2:
-            self.dir = math.atan2(boy.y - self.y, boy.x - self.x)
+        ball, distance = main_state.get_min_distance_ball(self)
+        if distance < (PIXEL_PER_METER * 5) ** 2:
+            self.dir = math.atan2(ball.y - self.y, ball.x - self.x)
             return BehaviorTree.SUCCESS
         else:
             self.speed = 0
             return BehaviorTree.FAIL
 
     def move_to_ball(self):
-        pass
+        return self.move_to_player()
 
     def check_boy_health_alot(self):
-        pass
+        boy = main_state.get_boy()
+        if boy.health < self.health:
+            return BehaviorTree.SUCCESS
+        else:
+            return BehaviorTree.FAIL
 
     def build_behavior_tree(self):
         chase_node = SequenceNode("Chase")
-        find_player_node = LeafNode("Find Player", self.find_player)
+        find_player_node = LeafNode("find_player_node", self.find_player)
         check_health = SelectorNode("check health")
 
         check_and_move_to_boy_sequence = SequenceNode("check_and_move_to_boy_sequence")
@@ -129,15 +133,11 @@ class Zombie:
         move_to_player_node = LeafNode("Move to Player", self.move_to_player)
         check_and_move_to_boy_sequence.add_children(check_boy_health_alot_node, move_to_player_node)
 
+        away_from_player_node = LeafNode("away_from_player_node", self.away_from_player)
 
-
-        check_health.add_children(check_and_move_to_boy_sequence)
-
-
-
+        check_health.add_children(check_and_move_to_boy_sequence, away_from_player_node)
 
         chase_node.add_children(find_player_node, check_health)
-
 
 
         find_ball_sequence = SequenceNode("find_ball")
@@ -145,7 +145,9 @@ class Zombie:
         move_to_ball_node =LeafNode("Move to Ball", self.move_to_ball)
         find_ball_sequence.add_children(find_ball_node, move_to_ball_node)
 
+
         wander_node = LeafNode("Wander Action", self.wander)
+
 
         chase_pick_wander_node = SelectorNode("chase_pick_wander")
         chase_pick_wander_node.add_children(chase_node, find_ball_sequence, wander_node)
@@ -161,6 +163,10 @@ class Zombie:
 
     def update(self):
         self.bt.run()
+        ball = main_state.get_collide_ball(self)
+        if ball:
+            main_state.remove_ball(ball)
+            self.health += ball.health
 
 
     def draw(self):
@@ -174,6 +180,9 @@ class Zombie:
                 Zombie.images['Idle'][int(self.frame)].draw(self.x, self.y, 100, 100)
             else:
                 Zombie.images['Walk'][int(self.frame)].draw(self.x, self.y, 100, 100)
+
+        import Font
+        Font.debug_print(str(self.health), self.x, self.y)
 
     def handle_event(self, event):
         pass
