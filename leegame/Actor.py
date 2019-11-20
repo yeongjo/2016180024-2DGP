@@ -23,7 +23,7 @@ class Actor(DrawObj):
     def clear_actors():
         actor_list = Actor.actor_list
         for a in actor_list:
-            ObjsList.active_objs_list.remove_object(a)
+            ObjsList.active_list.remove_object(a)
         actor_list.clear()
 
     def set_brain(self, brain):

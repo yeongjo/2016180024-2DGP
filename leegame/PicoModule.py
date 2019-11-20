@@ -9,19 +9,20 @@ font01 = None
 Screen_Width = 1920
 Screen_Height = 1000
 
-# 폰트 로딩 
+
+# 폰트 로딩
 def load_defulat_font(text_path="font/HoonWhitecatR.ttf"):
-    assert View.active_view != None #pico2d 초기화하고나서 불러줘야함
+    assert View.active_view != None  # pico2d 초기화하고나서 불러줘야함
     global font01
     font01 = pc.load_font(text_path, 55)
 
 
-def fill_rectangle(x1,y1,x2,y2, r,g,b,a=255):
+def fill_rectangle(x1, y1, x2, y2, r, g, b, a=255):
     view = View.active_view
     renderer = view.renderer
     pc.SDL_SetRenderDrawColor(renderer, r, g, b, a)
-    rect = pc.SDL_Rect(int(x1),int(-y2+view.h-1),int(x2-x1+1),int(y2-y1+1))
-    if(a != 255):
+    rect = pc.SDL_Rect(int(x1), int(-y2 + view.h - 1), int(x2 - x1 + 1), int(y2 - y1 + 1))
+    if (a != 255):
         pc.SDL_SetRenderDrawBlendMode(renderer, pc.SDL_BLENDMODE_BLEND)
     pc.SDL_RenderFillRect(renderer, rect)
     pc.SDL_SetRenderDrawBlendMode(renderer, pc.SDL_BLENDMODE_NONE)
@@ -71,31 +72,34 @@ class Camera:
 class ObjsList:
     # 모든 오브젝가지고 tick Render 들어올때마다 루프에서 돌려줌
     # 씬별로 달라야함 다른 씬이 불려오면 다른 오브젝매니저가 불림
-    active_objs_list = None
+    active_list = None
 
     def __init__(self):
-        self.objs = []
+        self.objs = [[], []]
 
-    def add_object(self, o):
-        self.objs.append(o)
+    def add_object(self, o, idx=0):
+        self.objs[idx].append(o)
 
     def remove_object(self, o):
-        #for i in range(len(self.objs)):
-        objs = self.objs
-        if o in objs:
-            objs.remove(o)
-            del o
+        objects = self.objs
+        for i in range(len(objects)):
+            if o in objects[i]:
+                objects[i].remove(o)
+                del o
+                break
 
     def active(self):
-        ObjsList.active_objs_list = self
+        ObjsList.active_list = self
 
     def render(self, cam):  # Obj.그리기 루프를 통해 물체들을 그림 Camera를 전달함
         for a in self.objs:
-            a.render(cam)
+            for b in a:
+                b.render(cam)
 
     def tick(self, dt):
         for a in self.objs:
-            a.tick(dt)
+            for b in a:
+                b.tick(dt)
 
 
 class View:
@@ -114,7 +118,7 @@ class View:
         pc.hide_lattice()
         self.window, self.renderer = win, ren
         self.w, self.h = w, h
-        self.half_w, self.half_h = w//2, h//2
+        self.half_w, self.half_h = w // 2, h // 2
         self.cam = Camera(idx)
         self.use()
 
@@ -145,7 +149,8 @@ img_loader = (ImgLoader(), ImgLoader())
 def is_clip(pos, size):
     hs = size // 2
     # 화면 밖에 나가면 true
-    if pos[0] + hs[0] < 0 or pos[0] - hs[0] > View.active_view.w or pos[1] + hs[1] < 0 or pos[1] - hs[1] > View.active_view.h:
+    if pos[0] + hs[0] < 0 or pos[0] - hs[0] > View.active_view.w or pos[1] + hs[1] < 0 or pos[1] - hs[
+        1] > View.active_view.h:
         return True
     return False
 
@@ -169,6 +174,8 @@ class Image:
 
 TYPE_NONE, TYPE_REPEAT, TYPE_ONCE, TYPE_ONCENEXTPLAY = range(4)
 ISPLAYING, ISONCEEND = range(-2, 0)
+
+
 class Animation:
     # 스프라이트 시트 이미지 배치는 항상 가로로 함 나중에 애니메이션 추가시 곤란함감소
     # -애니메이션 종류: 0:none, 1:반복재생, 2:한번재생멈춤, 3:한번재생다음애니메
@@ -185,7 +192,7 @@ class Animation:
 
         self.img_width, self.img_height = self.imgs[0].w, self.imgs[0].h
         self.width, self.height = self.img_width / sheet_count, self.img_height
-        self.half_width, self.half_height = self.width//2, self.height//2
+        self.half_width, self.half_height = self.width // 2, self.height // 2
         self.flip = ''
         self._type = _type
 
@@ -255,7 +262,6 @@ class Animation:
         return [self.half_widthh, self.half_height]
 
 
-
 class Animator:
 
     def __init__(self):
@@ -291,7 +297,6 @@ class Animator:
             prev_idx = self.anim_idx
             self.play(animation_state)
             return prev_idx
-        
 
     def render(self, pos, size, cam):
         if self.anim_idx == -1:
@@ -303,22 +308,21 @@ class Animator:
         return self.anim_arr[0].get_size()
 
 
+# Tick 함수가 매번 호출되는 얘들 몸통
 class TickObj:
-    # 매니저 클래스들이 가짐 tick 당 호출이 필요한친구들
-    def __init__(self):
-        ObjsList.active_objs_list.objs.append(self)
+
+    def __init__(self, layer=0):
+        self.layer = layer
+        ObjsList.active_list.add_object(self, self.layer)
 
     def tick(self, dt):  # dt deltaTime
         pass
 
 
 class DrawObj(TickObj):
-    # 오브젝매니저가 가짐, 이걸상속해서 다른 오브젝트 만들어야할듯
 
-    # imgs = [Image(),Image()]  # 그냥 이미지일수도 애니메이터일수도 있음 상속받은 오브젝트에서 결정하기
-
-    def __init__(self):
-        super().__init__()
+    def __init__(self, layer=0):
+        super().__init__(layer)
         self.pos = np.array([0.0, 0.0])
         self.size = np.array([1, 1])
 
@@ -349,39 +353,34 @@ class DrawObj(TickObj):
         pass
 
 
-class TimePassDetecter:
-    limitTime = 0.0
-    elapseTime = 0.0
-    state = -1  # int 클릭이면 1, 누르고있으면 2, 암것도아니면 -1, 시작하고 누른거면 0
+class TimePassDetector:
+    NOTHING, CLICK, ACTIVE = range(3)
 
-    def start(self, limitTime):
+    def start(self, limit_time):
         self.state = 0
-        self.limitTime = limitTime
+        self.limitTime = limit_time
+        self.elapseTime = 0.0
+        self.state = TimePassDetector.NOTHING
 
-    def cancel(self):  # 중간에 취소할일있으면 눌린상태가 2에서 0으로 변경됨
-        if self.state == 0:
-            if self.elapseTime < self.limitTime:
-                self.elapseTime = 0.0
-                self.state = 1
+    def cancel(self):
+        if self.elapseTime < self.limitTime:
+            self.state = TimePassDetector.CLICK
 
-        elif self.state == 2:
+        elif self.state == TimePassDetector.ACTIVE:
             if self.elapseTime > self.limitTime:
                 self.elapseTime = 0.0
-                self.state = -1
+                self.state = TimePassDetector.NOTHING
 
     def check(self, dt):
-        # [다른곳에서 사용법] 2가 반환되면 꾹누를때하는 동작을 수행한다. 꾸준히 검사하다. 0이 나오면 취소, 혹은 경우에 따라서 이동으로 취소도 가능, 조작에서 해야함
-        # [클릭 및 꾹누름 인식방식]
-        # 누를때 타이머 시작, 일정이상 시간이 지났는지 검사해서 드래그로 인식하고 그전에 떼면 클릭으로 간주한다.
-        if self.state == -1:
-            return -1
+        if self.state == TimePassDetector.NOTHING:
+            return TimePassDetector.NOTHING
         self.elapseTime += dt
-        if self.state == 1:
-            self.state = -1
-            return 1
+        if self.state == TimePassDetector.CLICK:
+            self.state = TimePassDetector.NOTHING
+            return TimePassDetector.CLICK
         if self.elapseTime > self.limitTime:
-            self.state = 2
-            return 2
+            self.state = TimePassDetector.ACTIVE
+            return TimePassDetector.ACTIVE
 
 
 def mouse_pos_to_view_pos(mouse_pos, view):
@@ -398,7 +397,7 @@ def mouse_pos_to_world(mouse_pos, view):
 # 키입력받는 함수에서 플레이어함수를 불러준다
 class MouseController:
     pos = np.array([0, 0])
-    clickTime = TimePassDetecter()  # 클릭용
+    clickTime = TimePassDetector()  # 클릭용
 
     is_down = False
 
@@ -417,7 +416,7 @@ class MouseController:
 
 class KeyController:
     x = 0
-    moveTime = TimePassDetecter()  # 달리기용
+    moveTime = TimePassDetector()  # 달리기용
 
     @classmethod
     def interact_input(self, isdown):  # ad, s / s키 입력중 ad가 눌리면 누르고있는동작취소
@@ -440,13 +439,16 @@ def open_windows():
 def change_scene(scene):
     game_framework.change_state(scene)
 
+
 def get_center():
     view = View.active_view
     return [view.half_w, view.half_h]
 
+
 def init():
     open_windows()
     load_defulat_font()
+
 
 def exit():
     view0 = View.views[0]

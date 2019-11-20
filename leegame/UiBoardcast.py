@@ -14,7 +14,7 @@ class UiBoardcast(DrawObj):
 
     def tick(self, dt):
         if self.is_removed:
-            ObjsList.active_objs_list.remove_object(self)
+            ObjsList.active_list.remove_object(self)
             return
         self.remain_time -= dt
         if self.remain_time <= 0:

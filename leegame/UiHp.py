@@ -3,7 +3,7 @@ from GamePlay import *
 from VictoryBoardcast import VictoryBoardcast
 from VictoryBoardcast import EndVictoryBoardcast
 
-class UiPlayer(DrawObj):
+class PlayerUI(DrawObj):
 
     # idx: -1, 1 (-1이 키보드 유저)
     def init(self, r, g, b, idx, side_img_pos):

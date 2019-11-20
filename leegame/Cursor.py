@@ -10,8 +10,18 @@ class Cursor(DrawObj):
         self.target_cam_pos = np.array([0, 0])
         self.mouse = [0, 0]
 
+        self.anim.load('img/cursor.png', 1, 1, np.array([0, 0]))
+        self.anim.load('img/cursor_attack_start.png', 3, 4, np.array([0, 0]))
+        self.anim.load('img/cursor_attack_doing.png', 1, 2, np.array([0, 0]))
+        self.anim.load('img/cursor_attack_shot.png', 3, 1, np.array([0, 0]))
+
+        detect_limit = 20
+        self.leftLimit = detect_limit
+        self.rightLimit = View.views[0].w - detect_limit
+        self.topLimit = View.views[0].h - detect_limit
+        self.bottomLimit = detect_limit
+
     def tick(self, dt):
-        global MouseController
         pos = MouseController.pos
         speed = 1500
         img_size = self.anim.anim_arr[0].get_size()
@@ -31,26 +41,28 @@ class Cursor(DrawObj):
         if dt * speed > 500:
             return
 
-        if pos[0] < 20:
-            View.views[0].cam.pos[0] -= dt * speed
+        cam_pos = View.views[0].cam.pos
+        # 마우스가 화면의 외곽선에 붙었는지 검사
+        if pos[0] < self.leftLimit:
+            cam_pos[0] -= dt * speed
             t_size = -MAP_HALF_WIDTH
-            if View.views[0].cam.pos[0] < t_size:
-                View.views[0].cam.pos[0] = t_size
-        elif pos[0] > View.views[0].w - 20:
-            View.views[0].cam.pos[0] += dt * speed
+            if cam_pos[0] < t_size:
+                cam_pos[0] = t_size
+        elif pos[0] > self.rightLimit:
+            cam_pos[0] += dt * speed
             t_size = MAP_HALF_WIDTH
-            if View.views[0].cam.pos[0] > t_size:
-                View.views[0].cam.pos[0] = t_size
-        if pos[1] < 20:
-            View.views[0].cam.pos[1] += dt * speed
+            if cam_pos[0] > t_size:
+                cam_pos[0] = t_size
+        if pos[1] < self.bottomLimit:
+            cam_pos[1] += dt * speed
             t_size = MAP_HALF_HEIGHT
-            if View.views[0].cam.pos[1] > t_size:
-                View.views[0].cam.pos[1] = t_size
-        elif pos[1] > View.views[0].h - 20:
-            View.views[0].cam.pos[1] -= dt * speed
+            if cam_pos[1] > t_size:
+                cam_pos[1] = t_size
+        elif pos[1] > self.topLimit:
+            cam_pos[1] -= dt * speed
             t_size = -MAP_HALF_HEIGHT
-            if View.views[0].cam.pos[1] < t_size:
-                View.views[0].cam.pos[1] = t_size
+            if cam_pos[1] < t_size:
+                cam_pos[1] = t_size
 
         # 마우스 끝에 가져다 대기만하면 다른 칸으로 이동
         # if pos[0] < 20:

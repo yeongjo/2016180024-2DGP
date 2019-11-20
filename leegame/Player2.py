@@ -36,7 +36,7 @@ class Player2(DrawObj):
         self.is_in_stair = False
         self.health = 2
         self.is_die = False
-        self.is_end = False
+        self.is_paused = False
 
         self.half_w = View.views[1].w // 2
         self.half_h = View.views[1].h // 2
@@ -48,12 +48,12 @@ class Player2(DrawObj):
         self.anim2.tick(dt)  # 머리위에 핑 애니메이션
         end_anim_idx = self.anim.tick(dt)
 
-        if self.is_die and end_anim_idx == ISONCEEND and not self.is_end: # 죽는게 끝나면
+        if self.is_die and end_anim_idx == ISONCEEND and not self.is_paused: # 죽는게 끝나면
             print("키보드 플레이어 죽음")
-            self.is_end = True
+            self.is_paused = True
             GameManager.round_end(1)
 
-        if self.is_in_stair or self.is_die:  # 죽거나 계단안에 있으면 캐릭터 직접 조종불가
+        if self.is_in_stair or self.is_die or self.is_paused:  # 죽거나 계단안에 있으면 캐릭터 직접 조종불가
             return
 
         if self.anim.anim_idx == 7:  # 맞는동작중엔 아무것도못하게
@@ -61,7 +61,6 @@ class Player2(DrawObj):
 
         speed = 300
 
-        global KeyController
         run = KeyController.moveTime.check(dt)  # s키 동작 상태확인
         if run == 1:
             # 인터렉트
@@ -101,14 +100,15 @@ class Player2(DrawObj):
         if self.is_die:
             return
 
-        size = np.array([90, 199]) // 2
-        rect = (self.pos[0] - size[0], self.pos[1] + size[1], self.pos[0] + size[0], self.pos[1] - size[1])
+        size = np.array([45, 200])
+        x1, y1 = self.pos[0] - size[0], self.pos[1] + size[1]
+        x2, y2 = self.pos[0] + size[0], self.pos[1]
+        rect = (x1, y1, x2, y2)
 
         if collide_rect_point(rect, point):
             self.anim.play(7, 0)
             self.health -= 1
             if self.health <= 0:
-                self.health = 0
                 self.die()
             return True
         return False
