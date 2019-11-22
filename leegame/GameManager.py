@@ -7,9 +7,13 @@ player1_multiply = 0
 MOUSEUSER, KEYUSER = range(2)
 
 
-# 활성화 된 오브젝트 리스트를 가지고
-# UI 상태 값에 업데이트 시켜준다.
+
 class GameManager:
+    """
+    활성화 된 오브젝트 리스트를 가지고
+    UI 상태 값에 업데이트 시켜준다.
+    """
+
     mouseuser_damage_amount = None
     keyuser_damage_amount = None
 
@@ -77,9 +81,12 @@ class GameManager:
         cls.__is_show_round_boardcast = True
         cls. is_round_end = cls.is_paused = True
 
-    # 1: Mouse, 2:Keyboard
+
     @classmethod
     def get_winning_player_idx(cls):
+        """
+        1: Mouse, 2:Keyboard
+        """
         if cls.player2_win_count >= cls.max_round_end_count:
             return MOUSEUSER
         else:

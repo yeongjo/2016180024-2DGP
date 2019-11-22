@@ -62,31 +62,26 @@ class Player2(DrawObj):
         speed = 300
 
         run = KeyController.moveTime.check(dt)  # s키 동작 상태확인
-        if run == 1:
+        if run == TimePassDetector.CLICK:
             # 인터렉트
             self.anim.play(3, 0)
         else:
-            if KeyController.x > 0:
-                if self.interact_obj != None:
-                    self.interact_obj.cancel_by_move()
-                self.anim.flip = 'h'
-                if run == 2:
-                    self.anim.play(2)
-                    speed *= 1.8
-                else:
-                    self.anim.play(1)
-            elif KeyController.x < 0:
-                if self.interact_obj != None:
-                    self.interact_obj.cancel_by_move()
-                self.anim.flip = ''
-                if run == 2:
-                    self.anim.play(2)
-                    speed *= 1.8
-                else:
-                    self.anim.play(1)
-            else:
+            if KeyController.x == 0:
                 if self.anim.is_end:
                     self.anim.play(0)
+            else:
+                if self.interact_obj is not None:
+                    self.interact_obj.cancel_by_move()
+                if run == TimePassDetector.ACTIVE:
+                    self.anim.play(2)
+                    speed *= 1.8
+                else:
+                    self.anim.play(1)
+                if KeyController.x > 0:
+                    self.anim.flip = 'h'
+                elif KeyController.x < 0:
+                    self.anim.flip = ''
+
 
         self.pos[0] += KeyController.x * speed * dt
         if end_anim_idx == 3:

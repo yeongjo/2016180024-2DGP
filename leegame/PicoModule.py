@@ -7,7 +7,7 @@ is_debug = False
 font01 = None
 
 Screen_Width = 1920
-Screen_Height = 800
+Screen_Height = 1080
 
 
 # 폰트 로딩
@@ -46,7 +46,7 @@ def _open_other_canvas(w=int(800), h=int(600), sync=True, full=False):
     else:
         flags = pc.SDL_WINDOW_SHOWN
 
-    window = pc.SDL_CreateWindow(caption, 1920, 30, w, h, flags)
+    window = pc.SDL_CreateWindow(caption, 1920, 0, w, h, flags)
     if sync:
         renderer = pc.SDL_CreateRenderer(window, -1,
                                          pc.SDL_RENDERER_ACCELERATED | pc.SDL_RENDERER_PRESENTVSYNC)
@@ -70,6 +70,8 @@ class Camera:
         self.default_size = default_size
         self.size = self.default_size
 
+    def reset_size(self):
+        self.size = self.default_size
 
 
 class ObjsList:
@@ -77,8 +79,13 @@ class ObjsList:
     # 씬별로 달라야함 다른 씬이 불려오면 다른 오브젝매니저가 불림
     active_list = None
 
+    '''
+    objs[0] 배경
+    objs[1] 오브젝
+    objs[2] ui
+    '''
     def __init__(self):
-        self.objs = [[], []]
+        self.objs = [[], [], []]
 
     def add_object(self, o, idx=0):
         self.objs[idx].append(o)
@@ -122,12 +129,19 @@ class View:
         self.window, self.renderer = win, ren
         self.w, self.h = w, h
         self.half_w, self.half_h = w // 2, h // 2
-        self.cam = Camera(idx, h/1080)
+        self.cam = Camera(idx, h / 1080)
         self.use()
+
 
     def change_scene(self):
         cam_pos = self.cam.pos
         cam_pos[0], cam_pos[1] = 0, 0
+
+    def change_size(self, w, h):
+        pc.SDL_SetWindowSize(self.window, w, h)
+        self.w, self.h = w, h
+        self.half_w, self.half_h = w // 2, h // 2
+        self.cam.size = self.cam.default_size = h / 1080
 
     def use(self):
         View.active_view = self
@@ -359,11 +373,11 @@ class DrawObj(TickObj):
         return self.imgs[0].size
 
     def get_halfsize(self):
-        return self.imgs[0].size//2
+        return self.imgs[0].size // 2
 
 
 class TimePassDetector:
-    NOTHING, CLICK, ACTIVE = range(3)
+    DISABLE, CLICK, ACTIVE, START = range(4)
 
     def __init__(self):
         self.start(100)
@@ -372,23 +386,24 @@ class TimePassDetector:
         self.limitTime = limit_time
         self.state = 0
         self.elapseTime = 0.0
-        self.state = TimePassDetector.NOTHING
+        self.state = TimePassDetector.START
 
     def cancel(self):
         if self.elapseTime < self.limitTime:
             self.state = TimePassDetector.CLICK
         else:
             self.start(100)
+            self.state = TimePassDetector.DISABLE
 
     def check(self, dt):
-        self.elapseTime += dt
+        if self.state == TimePassDetector.START:
+            self.elapseTime += dt
         if self.limitTime <= self.elapseTime:
             return TimePassDetector.ACTIVE
-        if self.state == TimePassDetector.NOTHING:
-            return TimePassDetector.NOTHING
         if self.state == TimePassDetector.CLICK:
-            self.state = TimePassDetector.NOTHING
+            self.state = TimePassDetector.DISABLE
             return TimePassDetector.CLICK
+        return TimePassDetector.DISABLE
 
 
 def mouse_pos_to_view_pos(mouse_pos, view):
@@ -451,8 +466,12 @@ def change_scene(scene):
 
 def get_center():
     view = View.active_view
-    print([view.half_w, view.half_h])
     return [view.half_w, view.half_h]
+
+
+def change_view_size(w, h):
+    View.views[0].change_size(w, h)
+    View.views[1].change_size(w, h)
 
 
 def init():

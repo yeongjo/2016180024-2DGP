@@ -6,21 +6,26 @@ from GameManager import GameManager
 
 objsList = None
 
-def make_objs():
-    background = DrawObj()
+background = None
+victory_img = None
 
-    if GameManager.mouseuser_ui != None:
-        victory_img = DrawObj()
+def make_objs():
+    global victory_img, background
+    if background is None:
+        background = DrawObj()
+
     if GameManager.get_winning_player_idx() == 1:
         background.load_img("img/leewin.png")
-        if GameManager.mouseuser_ui != None:
-            victory_img.imgs = GameManager.mouseuser_ui.imgs
     else:
         background.load_img("img/enemywin.png")
-        if GameManager.mouseuser_ui != None:
+
+    if GameManager.mouseuser_ui is not None:
+        if victory_img is None:
+            victory_img = DrawObj()
+        if GameManager.get_winning_player_idx() == 1:
+            victory_img.imgs = GameManager.mouseuser_ui.imgs
+        else:
             victory_img.imgs = GameManager.keyuser_ui.imgs
-    if GameManager.mouseuser_ui != None:
-        victory_img.pos = np.array(victory_img.get_halfsize())
     
     background.pos = np.array(background.get_halfsize())
 
@@ -30,6 +35,7 @@ ready_time = 1
 ready_remain_time = 1
 
 def enter():
+    pc.SDL_SetRelativeMouseMode(pc.SDL_FALSE)  # 마우스 화면밖에 못나가게
     View.views[0].cam.pos[0] = 0
     View.views[0].cam.pos[1] = 0
     View.views[1].cam.pos[0] = 0
@@ -42,11 +48,16 @@ def enter():
         objsList = ObjsList()
     objsList.active()
 
+
     ready_remain_time = ready_time
 
     global is_enter_before
     if not is_enter_before:
         make_objs()
+
+    if victory_img is not None:
+        victory_img.pos[0] = get_center()[0]
+        victory_img.pos[1] = View.active_view.h - victory_img.get_halfsize()[1]
 
     prc.reset()
 
@@ -60,7 +71,7 @@ def update(dt):  # View 각자의 그리기를 불러줌
         global ready_remain_time
         ready_remain_time -= dt
         if ready_remain_time <= 0:
-            ready_remain_time = -1;
+            ready_remain_time = -1
             game_framework.change_state(NextScene)
 
 
