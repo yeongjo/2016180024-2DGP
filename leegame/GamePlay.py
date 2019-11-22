@@ -203,6 +203,7 @@ def handle_events():
 
         # 키보드 입력
         if a.type == pc.SDL_KEYDOWN:
+            # print(a.key)
             if a.key == 97:  # a
                 KeyController.x -= 1
                 Player2.this.move_stair(Player2.KEY_A)
