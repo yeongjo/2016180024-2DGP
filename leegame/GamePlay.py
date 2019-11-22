@@ -29,6 +29,8 @@ def restart_game():
     Actor.clear_actors()
     random_actor_generator()
     Player2.this.init()
+    View.views[0].cam.size = 1
+    View.views[1].cam.size = 1
 
 
 from GameManager import GameManager
@@ -215,7 +217,8 @@ def handle_events():
 
             # 카메라 줌 확인용
             if a.key == 61:
-                View.views[0].cam.size += 0.5
+                # View.views[0].cam.size += 0.5
+                Player2.this.is_die = True
             if a.key == 45:
                 View.views[0].cam.size -= 0.5
 

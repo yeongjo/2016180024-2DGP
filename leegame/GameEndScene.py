@@ -8,19 +8,21 @@ objsList = None
 
 def make_objs():
     background = DrawObj()
-    
-    background.pos = np.array(get_center())
 
-    victory_img = DrawObj()
-    if GameManager.get_win_player_idx() == 1:
+    if GameManager.mouseuser_ui != None:
+        victory_img = DrawObj()
+    if GameManager.get_winning_player_idx() == 1:
         background.load_img("img/leewin.png")
-        victory_img.imgs = GameManager.mouseuser_ui.imgs
+        if GameManager.mouseuser_ui != None:
+            victory_img.imgs = GameManager.mouseuser_ui.imgs
     else:
         background.load_img("img/enemywin.png")
-        victory_img.imgs = GameManager.keyuser_ui.imgs
-
+        if GameManager.mouseuser_ui != None:
+            victory_img.imgs = GameManager.keyuser_ui.imgs
+    if GameManager.mouseuser_ui != None:
+        victory_img.pos = np.array(victory_img.get_halfsize())
     
-    victory_img.pos = np.array(get_center())
+    background.pos = np.array(background.get_halfsize())
 
 is_enter_before = False
 is_ready_all = False
@@ -32,6 +34,8 @@ def enter():
     View.views[0].cam.pos[1] = 0
     View.views[1].cam.pos[0] = 0
     View.views[1].cam.pos[1] = 0
+    View.views[0].cam.size = View.views[0].cam.default_size
+    View.views[1].cam.size = View.views[1].cam.default_size
 
     global objsList
     if objsList == None:

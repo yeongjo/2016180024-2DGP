@@ -8,7 +8,7 @@ objsList = None
 def make_objs():
     ui_mouse = DrawObj()
     ui_mouse.load_img('img/Title.png')
-    ui_mouse.pos = np.array(get_center())
+    ui_mouse.pos = np.array(ui_mouse.get_halfsize())
 
 is_enter_before = False
 is_ready_all = False

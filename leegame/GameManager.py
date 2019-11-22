@@ -4,9 +4,18 @@ from GamePlay import *
 player2_multiply = 0
 player1_multiply = 0
 
+MOUSEUSER, KEYUSER = range(2)
+
+
 # 활성화 된 오브젝트 리스트를 가지고
 # UI 상태 값에 업데이트 시켜준다.
 class GameManager:
+    mouseuser_damage_amount = None
+    keyuser_damage_amount = None
+
+    mouseuser_ui = None
+    keyuser_ui = None
+
     __damage_remain_time = 1
     __damage_wait_time = 1
 
@@ -21,6 +30,7 @@ class GameManager:
     max_round_end_count = 2
 
     is_paused = False
+    is_round_end = False
 
     @classmethod
     def init(cls, player_uis):
@@ -65,15 +75,15 @@ class GameManager:
                 cls.keyuser_ui.boardcast(True)
 
         cls.__is_show_round_boardcast = True
-        cls.is_paused = True
+        cls. is_round_end = cls.is_paused = True
 
     # 1: Mouse, 2:Keyboard
     @classmethod
-    def get_win_player_idx(cls):
+    def get_winning_player_idx(cls):
         if cls.player2_win_count >= cls.max_round_end_count:
-            return 2
+            return MOUSEUSER
         else:
-            return 1
+            return KEYUSER
 
     @classmethod
     def game_end(cls, idx):
@@ -97,7 +107,7 @@ class GameManager:
         cls.__round_remain_time = cls.__round_wait_time
         cls.__damage_remain_time =  cls.__damage_wait_time
         cls.__is_show_round_boardcast = False
-        cls.is_paused = False
+        cls. is_round_end = cls.is_paused = False
 
         restart_game()
 
