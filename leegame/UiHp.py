@@ -5,6 +5,9 @@ from VictoryBoardcast import EndVictoryBoardcast
 
 class PlayerUI(DrawObj):
 
+    def __init__(self, l):
+        super().__init__(l)
+
     # idx: -1, 1 (-1이 키보드 유저)
     def init(self, r, g, b, idx, side_img_pos):
         self.color = (r, g, b)

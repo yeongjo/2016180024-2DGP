@@ -4,8 +4,8 @@ from GamePlay import *
 
 class Ui(DrawObj):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, l):
+        super().__init__(l)
         self.off = (0, 0)
 
     def set_off(self, off):

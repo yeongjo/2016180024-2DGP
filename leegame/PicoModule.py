@@ -7,7 +7,7 @@ is_debug = False
 font01 = None
 
 Screen_Width = 1920
-Screen_Height = 1000
+Screen_Height = 800
 
 
 # 폰트 로딩
@@ -61,12 +61,15 @@ def _open_other_canvas(w=int(800), h=int(600), sync=True, full=False):
 
 # View에서 가짐
 class Camera:
-    size = 1.0
+    center = np.array([-1920 // 2, -1080 // 2 + 20])
 
     # idx  0:마우스, 1:키보드
-    def __init__(self, idx):
+    def __init__(self, idx, default_size):
         self.idx = idx
         self.pos = np.array([0.0, 0.0])
+        self.default_size = default_size
+        self.size = self.default_size
+
 
 
 class ObjsList:
@@ -119,7 +122,7 @@ class View:
         self.window, self.renderer = win, ren
         self.w, self.h = w, h
         self.half_w, self.half_h = w // 2, h // 2
-        self.cam = Camera(idx)
+        self.cam = Camera(idx, h/1080)
         self.use()
 
     def change_scene(self):
@@ -241,7 +244,7 @@ class Animation:
 
         return ISPLAYING
 
-    def render(self, pos, size, cam):  # render에서 종류#0이면 바로 return
+    def render(self, pos, size, cam):
         w = self.img_width / self.sheetCount
         tem_size = np.array([w * size[0], self.img_height * size[1]])
         tem_off = self.offset * cam.size
@@ -352,35 +355,40 @@ class DrawObj(TickObj):
     def load_animation(self, animation):
         pass
 
+    def get_size(self):
+        return self.imgs[0].size
+
+    def get_halfsize(self):
+        return self.imgs[0].size//2
+
 
 class TimePassDetector:
     NOTHING, CLICK, ACTIVE = range(3)
 
+    def __init__(self):
+        self.start(100)
+
     def start(self, limit_time):
-        self.state = 0
         self.limitTime = limit_time
+        self.state = 0
         self.elapseTime = 0.0
         self.state = TimePassDetector.NOTHING
 
     def cancel(self):
         if self.elapseTime < self.limitTime:
             self.state = TimePassDetector.CLICK
-
-        elif self.state == TimePassDetector.ACTIVE:
-            if self.elapseTime > self.limitTime:
-                self.elapseTime = 0.0
-                self.state = TimePassDetector.NOTHING
+        else:
+            self.start(100)
 
     def check(self, dt):
+        self.elapseTime += dt
+        if self.limitTime <= self.elapseTime:
+            return TimePassDetector.ACTIVE
         if self.state == TimePassDetector.NOTHING:
             return TimePassDetector.NOTHING
-        self.elapseTime += dt
         if self.state == TimePassDetector.CLICK:
             self.state = TimePassDetector.NOTHING
             return TimePassDetector.CLICK
-        if self.elapseTime > self.limitTime:
-            self.state = TimePassDetector.ACTIVE
-            return TimePassDetector.ACTIVE
 
 
 def mouse_pos_to_view_pos(mouse_pos, view):
@@ -437,11 +445,13 @@ def open_windows():
 
 
 def change_scene(scene):
+    import game_framework
     game_framework.change_state(scene)
 
 
 def get_center():
     view = View.active_view
+    print([view.half_w, view.half_h])
     return [view.half_w, view.half_h]
 
 

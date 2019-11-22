@@ -144,7 +144,22 @@ class Player2(DrawObj):
 
     def update_camera(self, dt):
         player_pos = np.array([self.pos[0] - self.half_w, self.pos[1] - self.half_h + 100])
-        View.views[1].cam.pos += (player_pos - View.views[1].cam.pos) * dt * 3
+        cam = View.views[1].cam
+        cam_pos = cam.pos
+
+
+        # 카메라가 최종 승리자에게 초점이 맞춰짐
+        if GameManager.is_round_end:
+            zero = Camera.center
+            cam_pos += (zero - cam_pos) * dt * 3
+            cam.size += (cam.default_size*0.45 - cam.size) * dt * 2
+
+            cam = View.views[0].cam
+            cam_pos = cam.pos
+            cam_pos += (zero - cam_pos) * dt * 3
+            cam.size += (cam.default_size*0.45 - cam.size) * dt * 2
+        else:
+            cam_pos += (player_pos - cam_pos) * dt * 3
 
     def render(self, cam):
         if self.interact_obj != None:
@@ -160,6 +175,6 @@ class Player2(DrawObj):
         self.anim.render(tem_pos, tem_size, cam)
         debug_text(str(self.health), tem_pos)
 
-        if cam.idx == 0: return
-        tem_pos[1] += 190
+        if cam.idx == 0 and not GameManager.is_round_end: return
+        tem_pos[1] += 190 * cam.size
         self.anim2.render(tem_pos, tem_size, cam)  # 머리위에 표시되는 핑

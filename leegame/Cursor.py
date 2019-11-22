@@ -40,29 +40,32 @@ class Cursor(DrawObj):
         # 카메라 텔레포트방지
         if dt * speed > 500:
             return
+        
+        # 라운드가 끝나면 카메라이동 자동으로 따라가게 둠
+        if not GameManager.is_round_end:
+            cam_pos = View.views[0].cam.pos
 
-        cam_pos = View.views[0].cam.pos
-        # 마우스가 화면의 외곽선에 붙었는지 검사
-        if pos[0] < self.leftLimit:
-            cam_pos[0] -= dt * speed
-            t_size = -MAP_HALF_WIDTH
-            if cam_pos[0] < t_size:
-                cam_pos[0] = t_size
-        elif pos[0] > self.rightLimit:
-            cam_pos[0] += dt * speed
-            t_size = MAP_HALF_WIDTH
-            if cam_pos[0] > t_size:
-                cam_pos[0] = t_size
-        if pos[1] < self.bottomLimit:
-            cam_pos[1] += dt * speed
-            t_size = MAP_HALF_HEIGHT
-            if cam_pos[1] > t_size:
-                cam_pos[1] = t_size
-        elif pos[1] > self.topLimit:
-            cam_pos[1] -= dt * speed
-            t_size = -MAP_HALF_HEIGHT
-            if cam_pos[1] < t_size:
-                cam_pos[1] = t_size
+            # 마우스가 화면의 외곽선에 붙었는지 검사
+            if pos[0] < self.leftLimit:
+                cam_pos[0] -= dt * speed
+                t_size = -MAP_HALF_WIDTH
+                if cam_pos[0] < t_size:
+                    cam_pos[0] = t_size
+            elif pos[0] > self.rightLimit:
+                cam_pos[0] += dt * speed
+                t_size = MAP_HALF_WIDTH
+                if cam_pos[0] > t_size:
+                    cam_pos[0] = t_size
+            if pos[1] < self.bottomLimit:
+                cam_pos[1] += dt * speed
+                t_size = MAP_HALF_HEIGHT
+                if cam_pos[1] > t_size:
+                    cam_pos[1] = t_size
+            elif pos[1] > self.topLimit:
+                cam_pos[1] -= dt * speed
+                t_size = -MAP_HALF_HEIGHT
+                if cam_pos[1] < t_size:
+                    cam_pos[1] = t_size
 
         # 마우스 끝에 가져다 대기만하면 다른 칸으로 이동
         # if pos[0] < 20:
