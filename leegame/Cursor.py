@@ -5,7 +5,7 @@ from Actor import Actor
 class Cursor(DrawObj):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(1)
         self.anim = Animator()
         self.target_cam_pos = np.array([0, 0])
         self.mouse = [0, 0]
@@ -81,9 +81,9 @@ class Cursor(DrawObj):
         # active_view_list[0].cam.pos += (delta) * (dt * speed)
 
         check_state = MouseController.clickTime.check(dt)
-        if check_state == 1:
+        if check_state == TimePassDetector.CLICK:
             InteractObj.interact_to_obj(1)
-        elif check_state == 2 and self.anim.anim_idx == 0:
+        elif check_state == TimePassDetector.ACTIVE and self.anim.anim_idx == 0:
             self.anim.play(1, 2)
 
     def shot(self):

@@ -29,8 +29,8 @@ def restart_game():
     Actor.clear_actors()
     random_actor_generator()
     Player2.this.init()
-    View.views[0].cam.size = 1
-    View.views[1].cam.size = 1
+    View.views[0].cam.reset_size()
+    View.views[1].cam.reset_size()
 
 
 from GameManager import GameManager
@@ -147,7 +147,7 @@ is_enter_before = False
 # -----------------------------------main code start-----------------------------------
 
 def enter():
-    # pc.SDL_SetRelativeMouseMode(pc.SDL_TRUE)  # 마우스 화면밖에 못나가게
+    pc.SDL_SetRelativeMouseMode(pc.SDL_TRUE)  # 마우스 화면밖에 못나가게
 
     pc.SDL_WarpMouseInWindow(View.views[0].window, View.views[0].w // 2, View.views[0].h // 2)
 

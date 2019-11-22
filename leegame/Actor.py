@@ -20,7 +20,8 @@ class Actor(DrawObj):
 
         Actor.actor_list.append(self)
 
-    def clear_actors():
+    @classmethod
+    def clear_actors(cls):
         actor_list = Actor.actor_list
         for a in actor_list:
             ObjsList.active_list.remove_object(a)
@@ -65,17 +66,20 @@ class Actor(DrawObj):
         if self.is_die or self.is_in_stair:
             return
 
-        size = np.array([90 // 2, 199 // 2])   # 충돌범위 따로 지정
-        rect = (self.pos[0] - size[0], self.pos[1] + size[1], self.pos[0] + size[0], self.pos[1] - size[1])
+        size = np.array([45, 200])
+        x1, y1 = self.pos[0] - size[0], self.pos[1] + size[1]
+        x2, y2 = self.pos[0] + size[0], self.pos[1]
+        rect = (x1, y1, x2, y2)
+
         if collide_rect_point(rect, point):
             self.health -= 1
             if self.health <= 0:
                 self.health = 0
                 self.die()
+                GameManager.keyuser_ui.take_damage(0.2)
             return True
         return False
 
     def die(self):
         self.is_die = True
         self.anim.play(4, 3)
-        Actor.actor_list.remove(self)
