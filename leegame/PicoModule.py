@@ -440,6 +440,7 @@ class MouseController:
 class KeyController:
     x = 0
     moveTime = TimePassDetector()  # 달리기용
+    is_w_down = False
 
     @classmethod
     def interact_input(self, isdown):  # ad, s / s키 입력중 ad가 눌리면 누르고있는동작취소

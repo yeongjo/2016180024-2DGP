@@ -2,7 +2,7 @@ from PicoModule import *
 from GamePlay import *
 
 from InteractObj import InteractObj
-
+from Actor import Actor
 
 class Player2(DrawObj):
     KEY_W, KEY_A, KEY_S, KEY_D = range(4)
@@ -22,8 +22,8 @@ class Player2(DrawObj):
         self.anim.load('img/user_run.png', 1, 4, np.array([80, 0]))  # 2
         self.anim.load('img/user_active.png', 3, 3, np.array([80, 0]))  # 3
         self.anim.load('img/user_die1.png', 2, 9, np.array([80, 0]))  # 4 플레이어한테 죽음
-        self.anim.load('img/user_movebody.png', 1, 7, np.array([80, 0]))  # 5 시체유기
-        self.anim.load('img/user_attack.png', 3, 7, np.array([80, 0]))  # 6 공격
+        self.anim.load('img/user_movebody.png', 1, 7, np.array([0, 0]))  # 5 시체유기
+        self.anim.load('img/user_attack.png', 3, 7, np.array([0, 0]))  # 6 공격
         self.anim.load('img/user_hit.png', 3, 1, np.array([80, 0]))  # 7 아야
         self.anim.anim_arr[7].delayTime = 1 / 2.0
         self.init()
@@ -37,13 +37,32 @@ class Player2(DrawObj):
         self.health = 2
         self.is_die = False
         self.is_paused = False
+        self.debug_attack_pos = [0,0]
+
+        self.is_attacking = False
+        self.moving_body = None
 
         self.half_w = View.views[1].w // 2
         self.half_h = View.views[1].h // 2
         View.views[1].cam.pos = self.pos - np.array([self.half_w, self.half_h - 200])
 
-    def tick(self, dt):
+    def attack(self):
+        attack_pos = cp.copy(self.pos)
+        if self.anim.flip is 'h':
+            dir = 1
+        else:
+            dir = -1
+        dis = 100
+        attack_pos[0] += dir * dis
+        attack_pos[1] += 50
+        self.debug_attack_pos = attack_pos
+        actor, distance = Actor.get_shortest_actor(attack_pos)
+        if actor is not None:
+            if distance < 150*150:
+                actor.take_damage(False)
 
+
+    def tick(self, dt):
         self.update_camera(dt)
         self.anim2.tick(dt)  # 머리위에 핑 애니메이션
         end_anim_idx = self.anim.tick(dt)
@@ -56,8 +75,16 @@ class Player2(DrawObj):
         if self.is_in_stair or self.is_die or self.is_paused:  # 죽거나 계단안에 있으면 캐릭터 직접 조종불가
             return
 
-        if self.anim.anim_idx == 7:  # 맞는동작중엔 아무것도못하게
+        if self.anim.anim_idx == Player2.ATTACK:
+            if not self.is_attacking:  # 맞는동작중엔 아무것도못하게
+                if self.anim.anim_arr[self.anim.anim_idx].frame >= 5:
+                    # 일정이상 프레임넘어가면 공격함
+                    self.attack()
+                    self.is_attacking = True
+                return
             return
+        else:
+            self.is_attacking = False
 
         speed = 300
 
@@ -65,22 +92,34 @@ class Player2(DrawObj):
         if run == TimePassDetector.CLICK:
             # 인터렉트
             self.anim.play(3, 0)
+            self.cancel_move_body()
         else:
+            if self.moving_body is not None:
+                speed = 100
             if KeyController.x == 0:
                 if self.anim.is_end:
-                    self.anim.play(0)
+                    if self.moving_body is None:
+                        self.anim.play(0)
             else:
                 if self.interact_obj is not None:
                     self.interact_obj.cancel_by_move()
                 if run == TimePassDetector.ACTIVE:
-                    self.anim.play(2)
+                    self.anim.play(Player2.RUN)
+                    self.cancel_move_body()
                     speed *= 1.8
                 else:
-                    self.anim.play(1)
-                if KeyController.x > 0:
-                    self.anim.flip = 'h'
-                elif KeyController.x < 0:
-                    self.anim.flip = ''
+                    if self.moving_body is None:
+                        self.anim.play(Player2.WALK)
+                if self.moving_body is None:
+                    if KeyController.x > 0:
+                        self.anim.flip = 'h'
+                    elif KeyController.x < 0:
+                        self.anim.flip = ''
+                else:
+                    if KeyController.x > 0:
+                        self.anim.flip = ''
+                    elif KeyController.x < 0:
+                        self.anim.flip = 'h'
 
 
         self.pos[0] += KeyController.x * speed * dt
@@ -108,6 +147,11 @@ class Player2(DrawObj):
             return True
         return False
 
+    def cancel_move_body(self):
+        if self.moving_body is not None:
+            self.moving_body.move_body(None)
+        self.moving_body = None
+
     def die(self):
         self.is_die = True
         self.anim.play(4)
@@ -122,12 +166,29 @@ class Player2(DrawObj):
         while i < t_count:
             if stair_list[i].check_player_pos(self.pos):
                 self.is_in_stair = True
+                if self.moving_body is not None:
+                    self.moving_body.is_in_stair = True
+                    self.cancel_move_body()
+                    GameManager.keyuser_ui.take_damage(0.5)
                 return
             i += 1
 
     # 계단 안에서 움직이기
     def move_stair(self, input_key):
         if not self.is_in_stair:
+            if input_key == Player2.KEY_W:
+                if self.moving_body is not None:
+                    self.cancel_move_body()
+                    return
+                actor, distance = Actor.get_shortest_actor(self.pos)
+                if actor.is_die_anim_end:
+                    if distance < 150*150:
+                        actor.move_body(self)
+                        self.moving_body = actor
+                        self.anim.play(Player2.MOVEBODY)
+                else:
+                    if self.anim.anim_idx is not Player2.ATTACK:
+                        self.anim.play(Player2.ATTACK, Player2.IDLE)
             return
         i = 0
         t_count = len(stair_list)
@@ -168,8 +229,10 @@ class Player2(DrawObj):
             return
 
         self.anim.render(tem_pos, tem_size, cam)
-        debug_text(str(self.health), tem_pos)
+
 
         if cam.idx == 0 and not GameManager.is_round_end: return
         tem_pos[1] += 190 * cam.size
         self.anim2.render(tem_pos, tem_size, cam)  # 머리위에 표시되는 핑
+
+        tem_pos = (self.debug_attack_pos - cam.pos) * cam.size

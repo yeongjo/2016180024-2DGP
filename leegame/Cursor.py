@@ -8,7 +8,7 @@ class Cursor(DrawObj):
         super().__init__(1)
         self.anim = Animator()
         self.target_cam_pos = np.array([0, 0])
-        self.mouse = [0, 0]
+        self.mouse_pos = [0, 0]
 
         self.anim.load('img/cursor.png', 1, 1, np.array([0, 0]))
         self.anim.load('img/cursor_attack_start.png', 3, 4, np.array([0, 0]))
@@ -26,8 +26,8 @@ class Cursor(DrawObj):
         speed = 1500
         img_size = self.anim.anim_arr[0].get_size()
         
-        self.mouse = mouse_pos_to_world(pos, View.views[0])
-        self.pos = self.mouse + np.array([img_size[0] / 2-10, -img_size[1] / 2-30])
+        self.mouse_pos = mouse_pos_to_world(pos, View.views[0])
+        self.pos = self.mouse_pos + np.array([img_size[0] / 2 - 10, -img_size[1] / 2 - 30])
 
         if MouseController.is_down is False:
             if self.anim.anim_idx == 2:
@@ -89,21 +89,10 @@ class Cursor(DrawObj):
     def shot(self):
         self.anim.play(3, 0)
 
-        if Player2.this.check_take_damage(self.mouse) is False:
-            small_len_obj = None
-            small_len = 300000000
-            tem_mouse_pos = np.array([self.mouse[0], self.mouse[1] - 150])
-
-            actor_list = Actor.actor_list
-            for a in actor_list:
-                _vec = tem_mouse_pos - a.pos
-                _len = sum(x * x for x in _vec)
-                if _len < small_len:
-                    small_len = _len
-                    small_len_obj = a
-
-            if small_len_obj is not None:
-                small_len_obj.check_take_damage(self.mouse)
+        if Player2.this.check_take_damage(self.mouse_pos) is False:
+            tem_pos = cp.copy(self.mouse_pos)
+            tem_pos[1] -= 150
+            Actor.take_damage_shortest_point(tem_pos)
 
     def render(self, cam):
         tem_pos, tem_size = self.calculate_pos_size(cam)
