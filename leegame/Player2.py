@@ -215,7 +215,9 @@ class Player2(DrawObj):
             cam_pos += (zero - cam_pos) * dt * 3
             cam.size += (cam.default_size*0.45 - cam.size) * dt * 2
         else:
-            cam_pos += (player_pos - cam_pos) * dt * 3
+            half_w, half_h = np.array(get_center())//2
+            cam_offset = 1920//4 -half_w, 1080//4 - half_h
+            cam_pos += (player_pos-cam_offset - cam_pos) * dt * 3
 
     def render(self, cam):
         if self.interact_obj != None:

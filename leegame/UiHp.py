@@ -36,7 +36,7 @@ class PlayerUI(DrawObj):
         tem_size = self.tem_size
         fill_rectangle(tem_pos[0], tem_pos[1], tem_size[0], tem_size[1], self.color[0], self.color[1],
                               self.color[2])
-        draw_text(str(self.win_count), tem_pos)
+        # draw_text(str(self.win_count), tem_pos)
 
     def calculate_healthbar(self):
         self.side_img_pos[0] = self.value * self.__hp_max_x + self.idx * -3

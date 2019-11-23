@@ -147,6 +147,15 @@ class View:
         View.active_view = self
         pc.set_window_renderer(self.window, self.renderer, self.w, self.h)
 
+    @classmethod
+    def reset(cls):
+        View.views[0].cam.pos[0] = 0
+        View.views[0].cam.pos[1] = 0
+        View.views[1].cam.pos[0] = 0
+        View.views[1].cam.pos[1] = 0
+        View.views[0].cam.size = View.views[0].cam.default_size
+        View.views[1].cam.size = View.views[1].cam.default_size
+
 
 # 뷰마다 하나씩 가지기
 class ImgLoader:

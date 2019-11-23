@@ -48,7 +48,7 @@ class Actor(DrawObj):
 
     @classmethod
     def take_damage_shortest_point(cls, point):
-        a, dis = cls.get_shortest_actor()
+        a, dis = cls.get_shortest_actor(point)
         if a is not None:
             a.check_take_damage(point)
 

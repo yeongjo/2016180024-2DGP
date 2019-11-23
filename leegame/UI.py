@@ -15,9 +15,9 @@ class Ui(DrawObj):
         vw = View.views[cam.idx].w // 2
         vh = View.views[cam.idx].h
         ratio1 = View.views[cam.idx].w / MAP_WIDTH
-        ww = self.imgs[0].size[0] // 2 * 1.5 * ratio1
+        ww = self.imgs[0].size[0] // 2 * ratio1
         # h = active_view_list[cam.idx].h / MAP_HEIGHT
         tem_size = np.array([ratio1, ratio1])
         tem_pos = np.array([self.pos[0] * ratio1 + vw - self.off[0] * ww, vh - self.pos[1] * ratio1])
-        tem_size *= 1.5
+        # tem_size *= 1.5
         self.imgs[cam.idx].render(tem_pos, tem_size)
