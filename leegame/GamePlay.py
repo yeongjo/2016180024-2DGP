@@ -117,12 +117,12 @@ def make_objs():
 
     ui_mouse = Ui(1)
     ui_mouse.load_img('img/ui_mouse.png')
-    ui_mouse.set_pos(366, 90)
+    ui_mouse.set_pos(0, 90)
     ui_mouse.set_off((-1, 0))
 
     ui_keyboard = Ui(1)
     ui_keyboard.load_img('img/ui_keyboard.png')
-    ui_keyboard.set_pos(-366, 90)
+    ui_keyboard.set_pos(-00, 90)
     ui_keyboard.set_off((1, 0))
 
     global ui_hp1, ui_hp2
@@ -138,7 +138,7 @@ def make_objs():
 
     ui_center = Ui(1)
     ui_center.load_img('img/ui_center.png')
-    ui_center.set_pos(0, 90)
+    ui_center.set_pos(0, 75)
 
 
 is_enter_before = False
@@ -179,7 +179,7 @@ def draw():
 
 
 def exit():
-    pass
+    is_enter_before = False
 
 
 def handle_events():
@@ -190,7 +190,8 @@ def handle_events():
 
         # ESC 게임 종료
         if a.type == pc.SDL_KEYDOWN and a.key == pc.SDLK_ESCAPE:
-            game_framework.quit()
+            import TitleScene
+            game_framework.change_state(TitleScene)
 
         # 마우스 입력
         if a.type == pc.SDL_MOUSEBUTTONDOWN and a.button == 1:

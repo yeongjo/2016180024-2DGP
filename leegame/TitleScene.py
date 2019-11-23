@@ -27,6 +27,8 @@ ready_time = 1
 ready_remain_time = 1
 
 def enter():
+    pc.SDL_SetRelativeMouseMode(pc.SDL_FALSE)  # 마우스 화면밖에 못나가게
+    View.reset()
     global objsList
     if objsList == None:
         objsList = ObjsList()
@@ -88,6 +90,19 @@ def handle_events():
             MouseController.is_down = True
         elif a.type == pc.SDL_MOUSEBUTTONUP and a.button == 1:
             MouseController.is_down = False
+
+        if a.type == pc.SDL_KEYDOWN:
+            # print(a.key)
+            if a.key == 97:  # a
+                KeyController.x -= 1
+            if a.key == 100:  # d
+                KeyController.x += 1
+
+        if a.type == pc.SDL_KEYUP:
+            if a.key == 97:  # a
+                KeyController.x += 1
+            if a.key == 100:  # d
+                KeyController.x -= 1
 
         if a.type == pc.SDL_MOUSEMOTION:
             MouseController.mouse_input(a.x, a.y)

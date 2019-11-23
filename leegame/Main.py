@@ -6,7 +6,7 @@ import GamePlay
 
 if __name__ == '__main__':
     PicoModule.init()
-    import GamePlay as start
+    import TitleScene as start
     state = start
     game_framework.run(state)
     PicoModule.exit()

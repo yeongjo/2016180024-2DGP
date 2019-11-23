@@ -91,7 +91,7 @@ class Cursor(DrawObj):
 
         if Player2.this.check_take_damage(self.mouse_pos) is False:
             tem_pos = cp.copy(self.mouse_pos)
-            tem_pos[1] -= 150
+            # tem_pos[1] -= 150
             Actor.take_damage_shortest_point(tem_pos)
 
     def render(self, cam):

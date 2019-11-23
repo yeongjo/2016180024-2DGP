@@ -36,12 +36,7 @@ ready_remain_time = 1
 
 def enter():
     pc.SDL_SetRelativeMouseMode(pc.SDL_FALSE)  # 마우스 화면밖에 못나가게
-    View.views[0].cam.pos[0] = 0
-    View.views[0].cam.pos[1] = 0
-    View.views[1].cam.pos[0] = 0
-    View.views[1].cam.pos[1] = 0
-    View.views[0].cam.size = View.views[0].cam.default_size
-    View.views[1].cam.size = View.views[1].cam.default_size
+    View.reset()
 
     global objsList
     if objsList == None:
@@ -56,8 +51,8 @@ def enter():
         make_objs()
 
     if victory_img is not None:
-        victory_img.pos[0] = get_center()[0]
-        victory_img.pos[1] = View.active_view.h - victory_img.get_halfsize()[1]
+        victory_img.pos[0] = 1920//2
+        victory_img.pos[1] = 1080 - victory_img.get_halfsize()[1] + 100
 
     prc.reset()
 
