@@ -6,6 +6,7 @@ import GamePlay as NextScene
 from Button import Button
 
 objsList = None
+bgm = None
 
 def set_window_size_1920():
     change_view_size(1920, 1080)
@@ -28,6 +29,13 @@ ready_remain_time = 1
 
 def enter():
     pc.SDL_SetRelativeMouseMode(pc.SDL_FALSE)  # 마우스 화면밖에 못나가게
+
+    global bgm
+    if (bgm == None):
+        bgm = pc.load_music('sound/Title.mp3')
+    bgm.set_volume(64)
+    bgm.repeat_play()
+
     View.reset()
     global objsList
     if objsList == None:
@@ -72,7 +80,7 @@ def draw():
         i += 1
 
 def exit():
-    pass
+    bgm.stop()
 
 def handle_events():
     events = pc.get_events()

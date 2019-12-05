@@ -1,5 +1,6 @@
 from PicoModule import *
 from GamePlay import *
+from Sound import Sound
 
 class UiBoardcast(DrawObj):
     def __init__(self, pos, remain_time = 1.0):
@@ -34,6 +35,12 @@ class ImgBoardcast(UiBoardcast):
     def __init__(self, imgs, pos, remain_time = 1.0):
         super().__init__(pos,remain_time)
         self.imgs = imgs
+        if remain_time > 2:
+            self.victory_sound = Sound.load('sound/EndVictory.wav', 100)
+        else:
+            self.victory_sound = Sound.load('sound/Victory.wav', 100)
+        self.victory_sound.play()
+
 
     def render(self, cam):
         self.render_rect()

@@ -65,6 +65,6 @@ class PlayerUI(DrawObj):
         view = View.active_view
         center = [view.half_w, view.half_h]
         if is_end:
-            EndVictoryBoardcast(self.imgs, center, 2.0)
+            EndVictoryBoardcast(self.imgs, center, 3.0)
         else:
             VictoryBoardcast(self.imgs, center, 2.0)

@@ -8,6 +8,7 @@ objsList = None
 
 background = None
 victory_img = None
+bgm = None
 
 def make_objs():
     global victory_img, background
@@ -36,6 +37,13 @@ ready_remain_time = 1
 
 def enter():
     pc.SDL_SetRelativeMouseMode(pc.SDL_FALSE)  # 마우스 화면밖에 못나가게
+
+    global bgm
+    if (bgm == None):
+        bgm = pc.load_music('sound/Win.mp3')
+    bgm.set_volume(64)
+    bgm.repeat_play()
+
     View.reset()
 
     global objsList
@@ -85,7 +93,7 @@ def draw():
         i += 1
 
 def exit():
-    pass
+    bgm.stop()
 
 def handle_events():
     events = pc.get_events()

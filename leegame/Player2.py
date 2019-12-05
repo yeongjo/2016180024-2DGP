@@ -3,6 +3,7 @@ from GamePlay import *
 
 from InteractObj import InteractObj
 from Actor import Actor
+from Sound import Sound
 
 class Player2(DrawObj):
     KEY_W, KEY_A, KEY_S, KEY_D = range(4)
@@ -26,6 +27,13 @@ class Player2(DrawObj):
         self.anim.load('img/user_attack.png', 3, 7, np.array([0, 0]))  # 6 공격
         self.anim.load('img/user_hit.png', 3, 1, np.array([80, 0]))  # 7 아야
         self.anim.anim_arr[7].delayTime = 1 / 2.0
+
+        self.attack_sound = Sound.load('sound/Attack2.wav', 100)
+        self.interact_sound = Sound.load('sound/빰.wav', 100)
+        self.hurt_sound = Sound.load('sound/영훈_아야.wav', 100)
+        self.movebody_sound = Sound.load('sound/GetBody.wav', 100)
+        self.die_sound = Sound.load('sound/Die.wav', 100)
+
         self.init()
 
     def init(self):
@@ -92,6 +100,7 @@ class Player2(DrawObj):
         if run == TimePassDetector.CLICK:
             # 인터렉트
             self.anim.play(3, 0)
+            self.interact_sound.play()
             self.cancel_move_body()
         else:
             if self.moving_body is not None:
@@ -142,6 +151,7 @@ class Player2(DrawObj):
         if collide_rect_point(rect, point):
             self.anim.play(7, 0)
             self.health -= 1
+            self.hurt_sound.play()
             if self.health <= 0:
                 self.die()
             return True
@@ -154,6 +164,7 @@ class Player2(DrawObj):
 
     def die(self):
         self.is_die = True
+        self.die_sound.play()
         self.anim.play(4)
 
     # tick 에서 불림 계단이랑 부딫히면 계단안에 들어간 상태로 변경
@@ -184,10 +195,12 @@ class Player2(DrawObj):
                 if actor.is_die_anim_end:
                     if distance < 150*150:
                         actor.move_body(self)
+                        self.movebody_sound.play()
                         self.moving_body = actor
                         self.anim.play(Player2.MOVEBODY)
                 else:
                     if self.anim.anim_idx is not Player2.ATTACK:
+                        self.attack_sound.play()
                         self.anim.play(Player2.ATTACK, Player2.IDLE)
             return
         i = 0

@@ -1,5 +1,6 @@
 from PicoModule import *
 from GamePlay import *
+from Sound import Sound
 
 class Actor(DrawObj):
     actor_list = []
@@ -18,6 +19,8 @@ class Actor(DrawObj):
         self.is_die_anim_end = False
         self.is_in_stair = False
         self.health = 1
+
+        self.hurt_sound = Sound.load('sound/영훈_욱.wav', 100)
 
         self.player = None
 
@@ -104,6 +107,7 @@ class Actor(DrawObj):
 
         if collide_rect_point(rect, point):
             self.take_damage()
+            self.hurt_sound.play()
             return True
         return False
 

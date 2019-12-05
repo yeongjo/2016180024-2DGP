@@ -1,6 +1,7 @@
 from PicoModule import *
 from GamePlay import *
 from Actor import Actor
+from Sound import Sound
 
 class Cursor(DrawObj):
 
@@ -14,6 +15,8 @@ class Cursor(DrawObj):
         self.anim.load('img/cursor_attack_start.png', 3, 4, np.array([0, 0]))
         self.anim.load('img/cursor_attack_doing.png', 1, 2, np.array([0, 0]))
         self.anim.load('img/cursor_attack_shot.png', 3, 1, np.array([0, 0]))
+        self.interact_sound = Sound.load('sound/Pop.wav', 100)
+        self.shot_sound = Sound.load('sound/Duck Toy.wav', 100)
 
         detect_limit = 20
         self.leftLimit = detect_limit
@@ -67,28 +70,16 @@ class Cursor(DrawObj):
                 if cam_pos[1] < t_size:
                     cam_pos[1] = t_size
 
-        # 마우스 끝에 가져다 대기만하면 다른 칸으로 이동
-        # if pos[0] < 20:
-        #     self.target_cam_pos[0] = -MAP_WIDTH//2
-        # if pos[0] > active_view_list[0].w - 20:
-        #     self.target_cam_pos[0] = MAP_WIDTH//2
-        # if pos[1] < 20:
-        #     self.target_cam_pos[1] = MAP_HEIGHT//2
-        # if pos[1] > active_view_list[0].h - 20:
-        #     self.target_cam_pos[1] = -MAP_HEIGHT//2
-        #
-        # delta = self.target_cam_pos - active_view_list[0].cam.pos
-        # active_view_list[0].cam.pos += (delta) * (dt * speed)
-
         check_state = MouseController.clickTime.check(dt)
         if check_state == TimePassDetector.CLICK:
             InteractObj.interact_to_obj(1)
+            self.interact_sound.play()
         elif check_state == TimePassDetector.ACTIVE and self.anim.anim_idx == 0:
             self.anim.play(1, 2)
 
     def shot(self):
         self.anim.play(3, 0)
-
+        self.shot_sound.play()
         if Player2.this.check_take_damage(self.mouse_pos) is False:
             tem_pos = cp.copy(self.mouse_pos)
             # tem_pos[1] -= 150

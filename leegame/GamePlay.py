@@ -16,6 +16,7 @@ ui_hp2, ui_hp1 = None, None
 stair_list = []
 
 obj_name_list = ['냉장고', '복사기', '에어컨', '전등', '정수기', '컴터']
+bgm = None
 
 
 # 몇 층의 바닥의 높이가 얼마인지 받는 함수
@@ -151,6 +152,12 @@ def enter():
 
     pc.SDL_WarpMouseInWindow(View.views[0].window, View.views[0].w // 2, View.views[0].h // 2)
 
+    global bgm
+    if(bgm == None):
+        bgm = pc.load_music('sound/MainMusic.mp3')
+    bgm.set_volume(64)
+    bgm.repeat_play()
+
     global objsList
     if objsList == None:
         objsList = ObjsList()
@@ -180,6 +187,7 @@ def draw():
 
 def exit():
     is_enter_before = False
+    bgm.stop()
 
 
 def handle_events():

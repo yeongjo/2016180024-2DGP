@@ -1,5 +1,6 @@
 import Font
 from PicoModule import get_center
+from Sound import Sound
 
 mouseuser_ready = False
 keyuser_ready = False
@@ -7,19 +8,21 @@ keyuser_ready = False
 view_center = [0,0]
 
 def reset():
-    global mouseuser_ready
-    global keyuser_ready
+    global mouseuser_ready, keyuser_ready, pop_sound
     mouseuser_ready = False
     keyuser_ready = False
     view_center = get_center()
+    pop_sound = Sound.load('sound/Pop.wav', 100)
 
 def set_mouse_input():
     global mouseuser_ready
     mouseuser_ready = True
+    pop_sound.play()
 
 def set_key_input():
     global keyuser_ready
     keyuser_ready = True
+    pop_sound.play()
 
 def check_ready_status():
     return mouseuser_ready and keyuser_ready
