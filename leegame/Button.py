@@ -1,4 +1,5 @@
 from PicoModule import *
+from Sound import Sound
 
 
 class Button(DrawObj):
@@ -12,6 +13,7 @@ class Button(DrawObj):
         self.text = text
         self.fucn = func
         self.is_clicked = False
+        # self.pop_sound = Sound.load('sound/Pop.wav', 100)
 
     def tick(self, dt):
         if MouseController.is_down and not self.is_clicked:
@@ -23,6 +25,7 @@ class Button(DrawObj):
             y2 = self.y2
             if collide_rect_point((x,y2,x2,y),(mx,my)):
                 self.is_clicked = True
+                # self.pop_sound.play()
                 self.fucn()
         else:
             self.is_clicked = False
