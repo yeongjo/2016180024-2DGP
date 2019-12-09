@@ -50,7 +50,6 @@ class InteractObj(DrawObj):
 
     def interact(self, player_idx, is_interacting=False):
         if player_idx == 1 and self.anim.anim_idx is not 0:
-            # Player1 Interact!!
             self.anim.play(0)
             GameManager.increase_player2_damage(-self.damage)
         elif player_idx == 2:
@@ -91,6 +90,11 @@ class InteractObj(DrawObj):
         if small_len < 150 * 150:
             self.interact(player_idx)
 
+    def reset(self):
+        self.doing_remain_time = 0
+        self.is_playing_doing = False
+        self.anim.play(0)
+
     interact_obj_list = []
 
     @classmethod
@@ -117,3 +121,9 @@ class InteractObj(DrawObj):
 
         if small_len_obj is not None:
             small_len_obj.interact_input(player_idx, small_len)
+
+    @classmethod
+    def reset_all(cls):
+        for a in cls.interact_obj_list:
+            a.reset()
+
