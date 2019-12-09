@@ -2,6 +2,7 @@ from PicoModule import *
 import game_framework
 import copy as cp
 import random
+from ctypes import *
 
 EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING = (218, -139, -500)
 MAP_WIDTH = 1920
@@ -32,7 +33,7 @@ def restart_game():
     Player2.this.init()
     View.views[0].cam.reset_size()
     View.views[1].cam.reset_size()
-
+    InteractObj.reset_all()
 
 from GameManager import GameManager
 from Player2 import Player2
@@ -192,6 +193,9 @@ def exit():
 
 def handle_events():
     events = pc.get_events()
+    mouse_pos_x, mouse_pos_y =  c_int(),c_int()
+    pc.SDL_GetMouseState(mouse_pos_x, mouse_pos_y)
+    MouseController.mouse_input(int(mouse_pos_x.value), int(mouse_pos_y.value))
     for a in events:
         if a.type == pc.SDL_QUIT:
             game_framework.quit()
@@ -204,8 +208,8 @@ def handle_events():
         # 마우스 입력
         if a.type == pc.SDL_MOUSEBUTTONDOWN and a.button == 1:
             MouseController.interact_input(True)
-        if a.type == pc.SDL_MOUSEMOTION:
-            MouseController.mouse_input(a.x, a.y)
+        #if a.type == pc.SDL_MOUSEMOTION:
+        #    MouseController.mouse_input(a.x, a.y)
 
         if a.type == pc.SDL_MOUSEBUTTONUP and a.button == 1:
             MouseController.interact_input(False)
@@ -215,9 +219,13 @@ def handle_events():
             # print(a.key)
             if a.key == 97:  # a
                 KeyController.x -= 1
+                if KeyController.x < -1:
+                    KeyController.x = -1
                 Player2.this.move_stair(Player2.KEY_A)
             if a.key == 100:  # d
                 KeyController.x += 1
+                if KeyController.x > 1:
+                    KeyController.x = 1
                 Player2.this.move_stair(Player2.KEY_D)
             if a.key == 115:  # s
                 KeyController.interact_input(True)
@@ -230,7 +238,8 @@ def handle_events():
                 # View.views[0].cam.size += 0.5
                 Player2.this.is_die = True
             if a.key == 45:
-                View.views[0].cam.size -= 0.5
+                #View.views[0].cam.size -= 0.5
+                GameManager.game_end(GameManager.KEYUSER)
 
         if a.type == pc.SDL_KEYUP:
             if a.key == 97:  # a

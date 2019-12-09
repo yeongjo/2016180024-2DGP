@@ -4,7 +4,6 @@ from GamePlay import *
 player2_multiply = 0
 player1_multiply = 0
 
-MOUSEUSER, KEYUSER = range(2)
 
 
 
@@ -13,6 +12,7 @@ class GameManager:
     활성화 된 오브젝트 리스트를 가지고
     UI 상태 값에 업데이트 시켜준다.
     """
+    MOUSEUSER, KEYUSER = range(2)
 
     mouseuser_damage_amount = None
     keyuser_damage_amount = None
@@ -62,21 +62,20 @@ class GameManager:
     # UI에 수치가 있고 거기서 종료여부를 판단해서 받는다
     @classmethod
     def round_end(cls, idx):
-        # TODO 게임 끝나는 상태로 변경
         if idx == 1:
             cls.player1_win_count += 1
             if cls.player1_win_count >= cls.max_round_end_count:
-                cls.game_end(1)
+                cls.game_end(cls.MOUSEUSER)
             else:
                 print("마우스 승리")
-                cls.mouseuser_ui.boardcast(True)
+                cls.mouseuser_ui.boardcast()
         else:
             cls.player2_win_count += 1
             if cls.player2_win_count >= cls.max_round_end_count:
-                cls.game_end(2)
+                cls.game_end(cls.KEYUSER)
             else:
                 print("키보드 승리")
-                cls.keyuser_ui.boardcast(True)
+                cls.keyuser_ui.boardcast()
 
         cls.__is_show_round_boardcast = True
         cls. is_round_end = cls.is_paused = True
@@ -87,19 +86,19 @@ class GameManager:
         """
         1: Mouse, 2:Keyboard
         """
-        if cls.player2_win_count >= cls.max_round_end_count:
-            return MOUSEUSER
+        if cls.player2_win_count >= cls.player1_win_count:
+            return cls.KEYUSER
         else:
-            return KEYUSER
+            return cls.MOUSEUSER
 
     @classmethod
     def game_end(cls, idx):
-        if idx == 1:
+        if idx == cls.MOUSEUSER:
             print("마우스 승리 !!")
-            cls.mouseuser_ui.boardcast(True, True)
+            cls.mouseuser_ui.boardcast(True)
         else:
             print("키보드 승리 !!")
-            cls.keyuser_ui.boardcast(True, True)
+            cls.keyuser_ui.boardcast(True)
 
     
 

@@ -61,7 +61,7 @@ class PlayerUI(DrawObj):
             # call end
             GameManager.round_end(self.idx)
 
-    def boardcast(self,is_win, is_end=False):
+    def boardcast(self, is_end=False):
         view = View.active_view
         center = [view.half_w, view.half_h]
         if is_end:

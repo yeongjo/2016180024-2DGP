@@ -45,7 +45,7 @@ class EndVictoryBoardcast(VictoryBoardcast):
 class EndRoundBoardcast(RoundBoardcast):
     def exit(self):
         GameManager.end_boardcast()
-        print("game end")
+        print("last round end")
         import game_framework
         import GameEndScene
         game_framework.change_state(GameEndScene)
