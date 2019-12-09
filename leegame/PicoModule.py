@@ -46,7 +46,7 @@ def _open_other_canvas(w=int(800), h=int(600), sync=True, full=False):
     else:
         flags = pc.SDL_WINDOW_SHOWN
 
-    window = pc.SDL_CreateWindow(caption, 1920, 0, w, h, flags)
+    window = pc.SDL_CreateWindow(caption, 0, 0, w, h, flags)
     if sync:
         renderer = pc.SDL_CreateRenderer(window, -1,
                                          pc.SDL_RENDERER_ACCELERATED | pc.SDL_RENDERER_PRESENTVSYNC)
@@ -97,6 +97,13 @@ class ObjsList:
                 objects[i].remove(o)
                 del o
                 break
+
+    def clear(self):
+        objects = self.objs
+        for i in range(len(objects)):
+            for o in objects[i]:
+                del o
+            objects[i].clear()
 
     def active(self):
         ObjsList.active_list = self
