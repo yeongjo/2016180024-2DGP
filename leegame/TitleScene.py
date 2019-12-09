@@ -29,7 +29,7 @@ ready_remain_time = 1
 
 def enter():
     pc.SDL_SetRelativeMouseMode(pc.SDL_FALSE)  # 마우스 화면밖에 못나가게
-
+    KeyController.x = 0
     global bgm
     if (bgm == None):
         bgm = pc.load_music('sound/Title.mp3')
@@ -100,7 +100,6 @@ def handle_events():
             MouseController.is_down = False
 
         if a.type == pc.SDL_KEYDOWN:
-            # print(a.key)
             if a.key == 97:  # a
                 KeyController.x -= 1
             if a.key == 100:  # d
