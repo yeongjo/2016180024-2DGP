@@ -83,6 +83,9 @@ class Player2(DrawObj):
         if self.is_in_stair or self.is_die or self.is_paused:  # 죽거나 계단안에 있으면 캐릭터 직접 조종불가
             return
 
+        if self.anim.anim_idx == Player2.HIT:
+            return
+
         if self.anim.anim_idx == Player2.ATTACK:
             if not self.is_attacking:  # 맞는동작중엔 아무것도못하게
                 if self.anim.anim_arr[self.anim.anim_idx].frame >= 5:
