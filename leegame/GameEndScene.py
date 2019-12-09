@@ -12,18 +12,16 @@ bgm = None
 
 def make_objs():
     global victory_img, background
-    if background is None:
-        background = DrawObj()
+    background = DrawObj()
 
-    if GameManager.get_winning_player_idx() == 1:
+    if GameManager.get_winning_player_idx() == GameManager.MOUSEUSER:
         background.load_img("img/leewin.png")
     else:
         background.load_img("img/enemywin.png")
 
     if GameManager.mouseuser_ui is not None:
-        if victory_img is None:
-            victory_img = DrawObj()
-        if GameManager.get_winning_player_idx() == 1:
+        victory_img = DrawObj()
+        if GameManager.get_winning_player_idx() == GameManager.MOUSEUSER:
             victory_img.imgs = GameManager.mouseuser_ui.imgs
         else:
             victory_img.imgs = GameManager.keyuser_ui.imgs
@@ -42,7 +40,7 @@ def enter():
     if (bgm == None):
         bgm = pc.load_music('sound/Win.mp3')
     bgm.set_volume(64)
-    bgm.repeat_play()
+    bgm.play()
 
     View.reset()
 
@@ -54,9 +52,7 @@ def enter():
 
     ready_remain_time = ready_time
 
-    global is_enter_before
-    if not is_enter_before:
-        make_objs()
+    make_objs()
 
     if victory_img is not None:
         victory_img.pos[0] = 1920//2
@@ -94,6 +90,7 @@ def draw():
 
 def exit():
     bgm.stop()
+    objsList.clear()
 
 def handle_events():
     events = pc.get_events()
