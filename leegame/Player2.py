@@ -50,13 +50,14 @@ class Player2(DrawObj):
         self.is_attacking = False
         self.moving_body = None
 
-        self.half_w = View.views[1].w // 2
-        self.half_h = View.views[1].h // 2
-        View.views[1].cam.pos = self.pos - np.array([self.half_w, self.half_h - 200])
+        viewIdx = len(View.views)-1
+        self.half_w = View.views[viewIdx].w // 2
+        self.half_h = View.views[viewIdx].h // 2
+        View.views[viewIdx].cam.pos = self.pos - np.array([self.half_w, self.half_h - 200])
 
     def attack(self):
         attack_pos = cp.copy(self.pos)
-        if self.anim.flip is 'h':
+        if self.anim.flip == 'h':
             dir = 1
         else:
             dir = -1
@@ -215,8 +216,12 @@ class Player2(DrawObj):
             i += 1
 
     def update_camera(self, dt):
+        import TitleScene
+        if TitleScene.isServer:
+            return
+
         player_pos = np.array([self.pos[0] - self.half_w, self.pos[1] - self.half_h + 100])
-        cam = View.views[1].cam
+        cam = View.views[0].cam
         cam_pos = cam.pos
 
 
@@ -243,7 +248,9 @@ class Player2(DrawObj):
         if self.is_in_stair:  # 계단안에 있다면 플레이어2에게만 화살표로 표시하고 나머지에겐 안보임
             if cam.idx == 1:
                 tem_pos[1] += 150
-                self.imgs[1].render(tem_pos, tem_size)
+                import TitleScene
+                if TitleScene.isServer:
+                    self.imgs[0].render(tem_pos, tem_size)
             return
 
         self.anim.render(tem_pos, tem_size, cam)

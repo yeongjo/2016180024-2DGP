@@ -24,7 +24,7 @@ class InteractObj(DrawObj):
 
         if self.is_playing_doing:
             self.doing_remain_time += dt
-            if self.doing_limit_time < self.doing_remain_time and self.anim.anim_idx is not 1:
+            if self.doing_limit_time < self.doing_remain_time and self.anim.anim_idx != 1:
                 self.is_playing_doing = False
                 self.anim.play(1)
                 from Player2 import Player2
@@ -49,18 +49,18 @@ class InteractObj(DrawObj):
         debug_text(str(self.floor_y), tem_pos + np.array([0, 20]))
 
     def interact(self, player_idx, is_interacting=False):
-        if player_idx == 1 and self.anim.anim_idx is not 0:
+        if player_idx == 1 and self.anim.anim_idx != 0:
             self.anim.play(0)
             GameManager.increase_player2_damage(-self.damage)
         elif player_idx == 2:
-            if self.doing_limit_time >= 0 and self.anim.anim_idx is not 1:
+            if self.doing_limit_time >= 0 and self.anim.anim_idx != 1:
                 # Player2 Interacting~~
                 self.anim.play(2)
                 self.doing_remain_time = 0
                 self.is_playing_doing = True
                 from Player2 import Player2
                 Player2.this.interact_obj = self
-            elif self.anim.anim_idx is not 1:
+            elif self.anim.anim_idx != 1:
                 print("interact 63 : Player2 Interact!!")
                 GameManager.increase_player2_damage(self.damage)
                 self.anim.play(1)

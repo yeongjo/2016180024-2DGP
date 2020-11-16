@@ -43,9 +43,10 @@ class Cursor(DrawObj):
         # 카메라 텔레포트방지
         if dt * speed > 500:
             return
-        
+
+        import TitleScene
         # 라운드가 끝나면 카메라이동 자동으로 따라가게 둠
-        if not GameManager.is_round_end:
+        if not GameManager.is_round_end or TitleScene.isServer:
             cam_pos = View.views[0].cam.pos
 
             # 마우스가 화면의 외곽선에 붙었는지 검사

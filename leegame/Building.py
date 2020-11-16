@@ -20,13 +20,14 @@ class Building(DrawObj):
             cls.buildings[i].pos = np.array(building_pos[i])
             is_right = i % 2
             if is_right == 1:
-                cls.buildings[i].imgs[0].filp = True
-                cls.buildings[i].imgs[1].filp = True
+                for img in cls.buildings[i].imgs:
+                    img.filp = True
             for y in EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING:
                 stair = Stair()
                 stair.set_pos(-stair_pos_x[0] + 18 * is_right + cls.buildings[i].pos[0], y + cls.buildings[i].pos[1])
             for y in EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING:
                 stair = Stair()
                 stair.set_pos(stair_pos_x[1] + 18 * is_right + cls.buildings[i].pos[0], y + cls.buildings[i].pos[1])
-                stair.imgs[1].filp = stair.imgs[0].filp = True
+                for img in stair.imgs:
+                    img.filp = True
             i += 1

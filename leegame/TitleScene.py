@@ -4,6 +4,7 @@ import PlayerReadyChecker as prc
 import GamePlay as NextScene
 
 from Button import Button
+import random
 
 objsList = None
 bgm = None
@@ -26,8 +27,12 @@ is_enter_before = False
 is_ready_all = False
 ready_time = 1
 ready_remain_time = 1
-
+isServer = False
+# 타이틀 신 들와서 처음 시작
 def enter():
+    global isServer
+    random.seed(9000)
+    # isServer = True
     pc.SDL_SetRelativeMouseMode(pc.SDL_FALSE)  # 마우스 화면밖에 못나가게
     KeyController.x = 0
     global bgm

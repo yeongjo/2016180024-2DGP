@@ -31,7 +31,7 @@ def make_objs():
 is_enter_before = False
 is_ready_all = False
 ready_time = 1
-ready_remain_time = 1
+ready_remain_time = 2
 
 def enter():
     pc.SDL_SetRelativeMouseMode(pc.SDL_FALSE)  # 마우스 화면밖에 못나가게
@@ -66,7 +66,7 @@ def enter():
 def update(dt):  # View 각자의 그리기를 불러줌
     objsList.tick(dt)
 
-    if prc.check_ready_status():
+    if prc.mouseuser_ready or prc.keyuser_ready:
         global ready_remain_time
         ready_remain_time -= dt
         if ready_remain_time <= 0:

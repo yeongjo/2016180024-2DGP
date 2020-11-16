@@ -31,8 +31,8 @@ def restart_game():
     Actor.clear_actors()
     random_actor_generator()
     Player2.this.init()
-    View.views[0].cam.reset_size()
-    View.views[1].cam.reset_size()
+    for a in View.views:
+        a.cam.reset_size()
     InteractObj.reset_all()
 
 from GameManager import GameManager
@@ -193,9 +193,11 @@ def exit():
 
 def handle_events():
     events = pc.get_events()
-    mouse_pos_x, mouse_pos_y =  c_int(),c_int()
-    pc.SDL_GetMouseState(mouse_pos_x, mouse_pos_y)
-    MouseController.mouse_input(int(mouse_pos_x.value), int(mouse_pos_y.value))
+    import TitleScene
+    if TitleScene.isServer:
+        mouse_pos_x, mouse_pos_y =  c_int(),c_int()
+        pc.SDL_GetMouseState(mouse_pos_x, mouse_pos_y)
+        MouseController.mouse_input(int(mouse_pos_x.value), int(mouse_pos_y.value))
     for a in events:
         if a.type == pc.SDL_QUIT:
             game_framework.quit()
@@ -205,49 +207,50 @@ def handle_events():
             import TitleScene
             game_framework.change_state(TitleScene)
 
-        # 마우스 입력
-        if a.type == pc.SDL_MOUSEBUTTONDOWN and a.button == 1:
-            MouseController.interact_input(True)
-        #if a.type == pc.SDL_MOUSEMOTION:
-        #    MouseController.mouse_input(a.x, a.y)
+        if TitleScene.isServer:
+            # 마우스 입력
+            if a.type == pc.SDL_MOUSEBUTTONDOWN and a.button == 1:
+                MouseController.interact_input(True)
+            #if a.type == pc.SDL_MOUSEMOTION:
+            #    MouseController.mouse_input(a.x, a.y)
 
-        if a.type == pc.SDL_MOUSEBUTTONUP and a.button == 1:
-            MouseController.interact_input(False)
+            if a.type == pc.SDL_MOUSEBUTTONUP and a.button == 1:
+                MouseController.interact_input(False)
+        else:
+            # 키보드 입력
+            if a.type == pc.SDL_KEYDOWN:
+                # print(a.key)
+                if a.key == 97:  # a
+                    KeyController.x -= 1
+                    if KeyController.x < -1:
+                        KeyController.x = -1
+                    Player2.this.move_stair(Player2.KEY_A)
+                if a.key == 100:  # d
+                    KeyController.x += 1
+                    if KeyController.x > 1:
+                        KeyController.x = 1
+                    Player2.this.move_stair(Player2.KEY_D)
+                if a.key == 115:  # s
+                    KeyController.interact_input(True)
+                    Player2.this.move_stair(Player2.KEY_S)
+                if a.key == 119:  # w
+                    Player2.this.move_stair(Player2.KEY_W)
 
-        # 키보드 입력
-        if a.type == pc.SDL_KEYDOWN:
-            # print(a.key)
-            if a.key == 97:  # a
-                KeyController.x -= 1
-                if KeyController.x < -1:
-                    KeyController.x = -1
-                Player2.this.move_stair(Player2.KEY_A)
-            if a.key == 100:  # d
-                KeyController.x += 1
-                if KeyController.x > 1:
-                    KeyController.x = 1
-                Player2.this.move_stair(Player2.KEY_D)
-            if a.key == 115:  # s
-                KeyController.interact_input(True)
-                Player2.this.move_stair(Player2.KEY_S)
-            if a.key == 119:  # w
-                Player2.this.move_stair(Player2.KEY_W)
+                # 카메라 줌 확인용
+                if a.key == 61:
+                    # View.views[0].cam.size += 0.5
+                    Player2.this.is_die = True
+                if a.key == 45:
+                    #View.views[0].cam.size -= 0.5
+                    GameManager.game_end(GameManager.KEYUSER)
 
-            # 카메라 줌 확인용
-            if a.key == 61:
-                # View.views[0].cam.size += 0.5
-                Player2.this.is_die = True
-            if a.key == 45:
-                #View.views[0].cam.size -= 0.5
-                GameManager.game_end(GameManager.KEYUSER)
-
-        if a.type == pc.SDL_KEYUP:
-            if a.key == 97:  # a
-                KeyController.x += 1
-            if a.key == 100:  # d
-                KeyController.x -= 1
-            if a.key == 115:  # s
-                KeyController.interact_input(False)
+            if a.type == pc.SDL_KEYUP:
+                if a.key == 97:  # a
+                    KeyController.x += 1
+                if a.key == 100:  # d
+                    KeyController.x -= 1
+                if a.key == 115:  # s
+                    KeyController.interact_input(False)
 
         if GameManager.is_paused:
             Player2.this.is_paused = True

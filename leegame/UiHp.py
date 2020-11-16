@@ -18,16 +18,21 @@ class PlayerUI(DrawObj):
         self.win_count = 0
         self.imgs = [Image(), Image()]
 
-        if idx == 1:
-            View.views[0].use()
-            self.imgs[0].load("img/1_win.png", 0)
-            View.views[1].use()
-            self.imgs[1].load("img/2_lose.png", 1)
+        import TitleScene
+        if idx == 1: # 마우스 플레이어가 이겼다.
+            if TitleScene.isServer:
+                View.views[0].use()
+                self.imgs[0].load("img/1_win.png", 0)
+            else:
+                View.views[0].use()
+                self.imgs[0].load("img/2_lose.png", 1)
         else:
-            View.views[0].use()
-            self.imgs[0].load("img/1_lose.png", 0)
-            View.views[1].use()
-            self.imgs[1].load("img/2_win.png", 1)
+            if TitleScene.isServer:
+                View.views[0].use()
+                self.imgs[0].load("img/1_lose.png", 0)
+            else:
+                View.views[0].use()
+                self.imgs[0].load("img/2_win.png", 1)
 
         self.calculate_healthbar()
 

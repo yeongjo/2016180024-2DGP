@@ -1,4 +1,5 @@
 import Font
+import TitleScene
 from PicoModule import get_center
 from Sound import Sound
 
@@ -28,7 +29,8 @@ def check_ready_status():
     return mouseuser_ready and keyuser_ready
 
 def render_status(idx, pos = view_center):
-    if idx == 0:
+    # if idx == 0:
+    if TitleScene.isServer:
         render_mouse_status(pos)
     else:
         render_key_status(pos)

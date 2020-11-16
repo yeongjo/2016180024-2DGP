@@ -122,7 +122,7 @@ class ObjsList:
 class View:
     # 윈도우마다 하나씩 있음
     is_first_open_canvas = True
-    views = (None, None)
+    views = (None)
     active_view = None
 
     def __init__(self, idx):
@@ -156,12 +156,10 @@ class View:
 
     @classmethod
     def reset(cls):
-        View.views[0].cam.pos[0] = 0
-        View.views[0].cam.pos[1] = 0
-        View.views[1].cam.pos[0] = 0
-        View.views[1].cam.pos[1] = 0
-        View.views[0].cam.size = View.views[0].cam.default_size
-        View.views[1].cam.size = View.views[1].cam.default_size
+        for a in View.views:
+            a.cam.pos[0] = 0
+            a.cam.pos[1] = 0
+            a.cam.size = a.cam.default_size
 
 
 # 뷰마다 하나씩 가지기
@@ -217,11 +215,10 @@ class Animation:
         self.delayTime = 1 / 8.0  # 딜레이 시간 초당 재생될 프레임 8.0
         self.remainDelayTime = 0.0  # 남은 딜레이 시간
 
-        self.imgs = [0, 0]
-        View.views[0].use()
-        self.imgs[0] = img_loader[0].load(path)
-        View.views[1].use()
-        self.imgs[1] = img_loader[1].load(path)
+        self.imgs = []
+        for i in range(len(View.views)):
+            View.views[i].use()
+            self.imgs.append(img_loader[i].load(path))
 
         self.img_width, self.img_height = self.imgs[0].w, self.imgs[0].h
         self.width, self.height = self.img_width / sheet_count, self.img_height
@@ -292,7 +289,7 @@ class Animation:
         return [self.width, self.height]
 
     def get_half_size(self):
-        return [self.half_widthh, self.half_height]
+        return [self.half_width, self.half_height]
 
 
 class Animator:
@@ -376,11 +373,10 @@ class DrawObj(TickObj):
 
     def load_img(self, path):
         # 렌더러 2개라 렌더러별로 하나씩 불러줘야함.
-        self.imgs = [Image(), Image()]
-        View.views[0].use()
-        self.imgs[0].load(path, 0)
-        View.views[1].use()
-        self.imgs[1].load(path, 1)
+        self.imgs = [Image() for i in range(len(View.views))]
+        for i in range(len(View.views)):
+            View.views[i].use()
+            self.imgs[i].load(path, i)
 
     def load_animation(self, animation):
         pass
@@ -473,7 +469,8 @@ def collide_rect_point(rect, point):
 
 
 def open_windows():
-    View.views = (View(0), View(1))
+    View.views = [View(0)]
+    # View.views = (View(0), View(1))
 
 
 def change_scene(scene):
@@ -487,8 +484,8 @@ def get_center():
 
 
 def change_view_size(w, h):
-    View.views[0].change_size(w, h)
-    View.views[1].change_size(w, h)
+    for a in View.views:
+        a.change_size(w, h)
 
 
 def init():
@@ -497,10 +494,9 @@ def init():
 
 
 def exit():
-    view0 = View.views[0]
-    view0.use()
-    pc.SDL_DestroyRenderer(view0.renderer)
-    pc.SDL_DestroyWindow(view0.window)
+    for a in View.views:
+        a.use()
+        pc.SDL_DestroyRenderer(a.renderer)
+        pc.SDL_DestroyWindow(a.window)
 
-    View.views[1].use()
     pc.close_canvas()
