@@ -115,17 +115,10 @@ def make_objs():
 
     # ui ----------------------------
 
-    Cursor()
-
-    ui_mouse = Ui(1)
+    ui_mouse = Ui((255,50,50))
     ui_mouse.load_img('img/ui_mouse.png')
     ui_mouse.set_pos(0, 90)
     ui_mouse.set_off((-1, 0))
-
-    ui_keyboard = Ui(1)
-    ui_keyboard.load_img('img/ui_keyboard.png')
-    ui_keyboard.set_pos(-00, 90)
-    ui_keyboard.set_off((1, 0))
 
     global ui_hp1, ui_hp2
     ui_hp1 = PlayerUI(1)
@@ -138,13 +131,9 @@ def make_objs():
     ui_hp2.size[0], ui_hp2.size[1] = 0, 35
     ui_hp2.init(91, 215, 232, 1.0, ui_mouse.pos)
 
-    ui_center = Ui(1)
-    ui_center.load_img('img/ui_center.png')
-    ui_center.set_pos(0, 75)
-
 
 is_enter_before = False
-
+my_player_id = -1
 
 # -----------------------------------main code start-----------------------------------
 

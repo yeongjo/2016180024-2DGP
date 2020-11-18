@@ -46,9 +46,11 @@ class Player2(DrawObj):
         self.is_die = False
         self.is_paused = False
         self.debug_attack_pos = [0,0]
+        self.id = -1
 
         self.is_attacking = False
         self.moving_body = None
+
 
         viewIdx = len(View.views)-1
         self.half_w = View.views[viewIdx].w // 2
