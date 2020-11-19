@@ -46,6 +46,8 @@ class Player(DrawObj):
         self.is_in_stair = False
         self.health = 2
         self.is_paused = False
+        self.prev_pos = cp.copy(self.pos)
+        self.delta_pos = np.array([0, 0])
         self.debug_attack_pos = [0, 0]
         self.id = Player.g_id
         Player.g_id += 1
@@ -59,32 +61,21 @@ class Player(DrawObj):
         View.views[viewIdx].cam.pos = self.pos - np.array([self.half_w, self.half_h - 200])
 
     def attack(self):
-        attack_pos = cp.copy(self.pos)
-        if self.anim.flip == 'h':
-            dir = 1
-        else:
-            dir = -1
-        dis = 100
-        attack_pos[0] += dir * dis
-        attack_pos[1] += 50
-        self.debug_attack_pos = attack_pos
-        actor, distance = Actor.get_shortest_actor(attack_pos)
-        if actor is not None:
-            if distance < 150 * 150:
-                actor.take_damage(False)
+        self.anim.anim_idx = Player.ATTACK
+
+    def hit(self):
+        self.anim.anim_idx = Player.HIT
 
     def tick(self, dt):
         self.update_camera(dt)
         self.anim2.tick(dt)  # 머리위에 핑 애니메이션
+        self.delta_pos = self.pos - self.prev_pos
         end_anim_idx = self.anim.tick(dt)
 
         if self.is_die() and end_anim_idx == ISONCEEND and not self.is_paused:  # 죽는게 끝나면
             print("키보드 플레이어 죽음")
             self.is_paused = True
             GameManager.round_end(1)
-
-        if self.is_in_stair or self.is_die() or self.is_paused:  # 죽거나 계단안에 있으면 캐릭터 직접 조종불가
-            return
 
         if self.anim.anim_idx == Player.HIT:
             return
@@ -95,10 +86,9 @@ class Player(DrawObj):
                     # 일정이상 프레임넘어가면 공격함
                     self.attack()
                     self.is_attacking = True
-                return
             return
-        else:
-            self.is_attacking = False
+
+        self.is_attacking = False
 
         speed = 300
 
@@ -111,36 +101,35 @@ class Player(DrawObj):
         else:
             if self.moving_body is not None:
                 speed = 100
-            if KeyController.x == 0:
+            delta_move_length = np.linalg.norm(self.delta_pos)
+            if delta_move_length <= 50:
                 if self.anim.is_end:
                     if self.moving_body is None:
                         self.anim.play(0)
-            else:
+            else: # 이동중임
                 if self.interact_obj is not None:
                     self.interact_obj.cancel_by_move()
-                if run == TimePassDetector.ACTIVE:
+                if delta_move_length > speed*dt*1.4:
                     self.anim.play(Player.RUN)
                     self.cancel_move_body()
-                    speed *= 1.8
                 else:
                     if self.moving_body is None:
                         self.anim.play(Player.WALK)
                 if self.moving_body is None:
-                    if KeyController.x > 0:
+                    if self.delta_pos > 0:
                         self.anim.flip = 'h'
-                    elif KeyController.x < 0:
+                    elif self.delta_pos < 0:
                         self.anim.flip = ''
                 else:
-                    if KeyController.x > 0:
+                    if self.delta_pos > 0:
                         self.anim.flip = ''
-                    elif KeyController.x < 0:
+                    elif self.delta_pos < 0:
                         self.anim.flip = 'h'
 
-        self.pos[0] += KeyController.x * speed * dt
-        if end_anim_idx == 3:
-            InteractObj.interact_to_obj(2)
-        elif end_anim_idx == 4:  # 죽고나면 게임 끝
-            GameManager.round_end(1)
+        # if end_anim_idx == 3:
+        #     InteractObj.interact_to_obj(2)
+        # elif end_anim_idx == 4:  # 죽고나면 게임 끝
+        #     GameManager.round_end(1)
 
         self.check_stair()  # 계단에 부딪혔는지 확인
 
@@ -184,7 +173,6 @@ class Player(DrawObj):
                 if self.moving_body is not None:
                     self.moving_body.is_in_stair = True
                     self.cancel_move_body()
-                    GameManager.keyuser_ui.take_damage(0.5)
                 return
             i += 1
 
@@ -236,7 +224,7 @@ class Player(DrawObj):
             cam_pos += (player_pos - cam_offset - cam_pos) * dt * 3
 
     def render(self, cam):
-        if self.interact_obj != None:
+        if self.interact_obj is not None:
             return
         tem_pos, tem_size = self.calculate_pos_size(cam)
 

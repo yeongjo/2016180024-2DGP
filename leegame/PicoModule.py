@@ -2,7 +2,7 @@ import pico2d as pc
 import numpy as np
 import os
 
-is_debug = False
+is_debug = True
 
 font01 = None
 
@@ -18,10 +18,10 @@ def load_defulat_font(text_path="font/HoonWhitecatR.ttf"):
 
 
 def fill_rectangle1(pos, size, r, g, b, a=255):
-    x1 = pos[0]
-    y1 = pos[1]
-    x2 = pos[0] + size[0]
-    y2 = pos[1] + size[1]
+    x1 = pos[0] - size[0]//2
+    y1 = pos[1] - size[1]//2
+    x2 = pos[0] + size[0]//2
+    y2 = pos[1] + size[1]//2
     fill_rectangle(x1, y1, x2, y2, r, g, b, a)
 
 

@@ -42,11 +42,15 @@ public:
 
 class Stair : public Obj {
 public:
-	Stair* otherStair = nullptr; // 가운데 건물이 맞닿는지점 서로 연결된 계단 포인터
+	static constexpr int UP = 0;
+	static constexpr int DOWN = 1;
+	static constexpr int LEFT = 2;
+	static constexpr int RIGHT = 3;
+	vector<Stair*> otherStairs; // 가운데 건물이 맞닿는지점 서로 연결된 계단 포인터
 
-	Stair(vec2 pos, Stair* other);
+	Stair(vec2 pos);
 
-	void SetOtherStair(Stair* other);
+	void SetOtherStair(Stair* other, int idx);
 };
 
 class Furniture : public InteractObj {
@@ -62,7 +66,7 @@ class Building
 	static constexpr float EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING[3] = { 218, -139, -500 };
 
 public:
-	vector<Stair> stairs;
+	vector<vector<Stair>> stairs;
 	vector<Furniture> furnitures;
 
 	void Init();

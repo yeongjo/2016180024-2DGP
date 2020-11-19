@@ -20,7 +20,7 @@ void GameManager::Update(float dt) {
 		for (auto& player : players) {
 			if (player.score.Update()) {
 				// 누군가 이겼다면 게임종료
-
+				// TODO 승리 플레이어 모든 클라에게 보냄
 				return;
 			}
 		}
