@@ -1,5 +1,13 @@
 from UiBoardcast import *
+import GameManager
 
+def boardcast():
+    view = View.active_view
+    center = [view.half_w, view.half_h]
+    img = Image()
+    img.load("img/2_lose.png", 1)
+    img.load("img/1_win.png", 0)
+    VictoryBoardcast(img, center, 2.0)
 
 class VictoryBoardcast(ImgBoardcast):
     def exit(self):
@@ -12,6 +20,9 @@ class RoundBoardcast(TextBoardcast):
     def exit(self):
         GameManager.end_boardcast()
         print("round end")
+        import game_framework
+        import GameEndScene
+        game_framework.change_state(GameEndScene)
 
     def render(self, cam):
         off = 300
@@ -40,7 +51,8 @@ class EndVictoryBoardcast(VictoryBoardcast):
     def tick(self, dt):
         super().tick(dt)
         self.alpha += (255-self.alpha)*1*dt
-        if self.alpha > 255: self.alpha = 255
+        if self.alpha > 255:
+            self.alpha = 255
 
 class EndRoundBoardcast(RoundBoardcast):
     def exit(self):

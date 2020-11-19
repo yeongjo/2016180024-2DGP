@@ -6,7 +6,7 @@ import GamePlay as NextScene
 from Button import Button
 import random
 
-objsList = None
+objM = None
 bgm = None
 
 def set_window_size_1920():
@@ -23,7 +23,7 @@ def make_objs():
     Button(10,10,200,100, "1920", set_window_size_1920)
     Button(10,110,200,200, "1280", set_window_size_1280)
 
-is_enter_before = False
+is_first = False
 is_ready_all = False
 ready_time = 1
 ready_remain_time = 1
@@ -42,14 +42,14 @@ def enter():
     bgm.repeat_play()
 
     View.reset()
-    global objsList
+    global objM
     if objsList == None:
-        objsList = ObjsList()
+        objsList = ObjM()
     objsList.active()
 
     ready_remain_time = ready_time
 
-    global is_enter_before
+    global is_first
     if not is_enter_before:
         make_objs()
 
@@ -59,7 +59,7 @@ def enter():
 
 
 def update(dt):  # View 각자의 그리기를 불러줌
-    objsList.tick(dt)
+    objM.tick(dt)
 
     if prc.check_ready_status():
         global ready_remain_time
@@ -75,7 +75,7 @@ def draw():
         pc.update_canvas()
         pc.clear_canvas()
         view.use()
-        objsList.render(view.cam)
+        objM.render(view.cam)
 
         text_pos = get_center()
         text_pos[0] -= 300

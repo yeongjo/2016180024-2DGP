@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Player.h"
 
+int playerCount = 0;
+
 bool Player::PlayerScore::Update() {
 	if (score >= 100) { return true; }
 	score += increaseScoreAmount;

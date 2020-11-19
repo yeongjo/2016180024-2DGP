@@ -16,6 +16,12 @@ def load_defulat_font(text_path="font/HoonWhitecatR.ttf"):
     global font01
     font01 = pc.load_font(text_path, 55)
 
+def fill_rectangle(pos, size, r, g, b, a=255):
+    x1 = pos[0]
+    y1 = pos[1]
+    x2 = pos[0] + size[0]
+    y2 = pos[1] + size[1]
+    fill_rectangle(x1, y1, x2, y2, r, g, b, a)
 
 def fill_rectangle(x1, y1, x2, y2, r, g, b, a=255):
     view = View.active_view
@@ -74,11 +80,7 @@ class Camera:
         self.size = self.default_size
 
 
-class ObjsList:
-    # 모든 오브젝가지고 tick Render 들어올때마다 루프에서 돌려줌
-    # 씬별로 달라야함 다른 씬이 불려오면 다른 오브젝매니저가 불림
-    active_list = None
-
+class ObjM:
     '''
     objs[0] 배경
     objs[1] 오브젝
@@ -104,9 +106,6 @@ class ObjsList:
             for o in objects[i]:
                 del o
             objects[i].clear()
-
-    def active(self):
-        ObjsList.active_list = self
 
     def render(self, cam):  # Obj.그리기 루프를 통해 물체들을 그림 Camera를 전달함
         for a in self.objs:
@@ -343,7 +342,7 @@ class TickObj:
 
     def __init__(self, layer=0):
         self.layer = layer
-        ObjsList.active_list.add_object(self, self.layer)
+        ObjM.active_list.add_object(self, self.layer)
 
     def tick(self, dt):  # dt deltaTime
         pass

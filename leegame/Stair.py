@@ -27,35 +27,35 @@ class Stair(DrawObj):
             if my_idx % 3 == 0 and my_idx < 12:
                 return
             if my_idx >= 12 and my_idx % 3 == 0:
-                Player2.this.pos = cp.copy(stair_list[my_idx - 10].pos)
+                Player.this.pos = cp.copy(stair_list[my_idx - 10].pos)
             else:
-                Player2.this.pos = cp.copy(stair_list[my_idx - 1].pos)
+                Player.this.pos = cp.copy(stair_list[my_idx - 1].pos)
         elif input_idx == 2:
             if my_idx % 3 == 2 and my_idx >= 12:
                 return
             if my_idx < 12 and my_idx % 3 == 2:
-                Player2.this.pos = cp.copy(stair_list[my_idx + 10].pos)
+                Player.this.pos = cp.copy(stair_list[my_idx + 10].pos)
             else:
-                Player2.this.pos = cp.copy(stair_list[my_idx + 1].pos)
+                Player.this.pos = cp.copy(stair_list[my_idx + 1].pos)
 
         elif input_idx == 1:
             if 6 <= my_idx <= 8 or 6 + 12 <= my_idx <= 8 + 12:  # 옆방으로
-                Player2.this.pos = cp.copy(stair_list[my_idx - 3].pos)
+                Player.this.pos = cp.copy(stair_list[my_idx - 3].pos)
             else:
-                Player2.this.pos = cp.copy(self.pos)
+                Player.this.pos = cp.copy(self.pos)
                 if 0 <= my_idx <= 2 or 0 + 12 <= my_idx <= 2 + 12:
                     pass
                 else:
-                    Player2.this.pos[0] -= 150
-                Player2.this.is_in_stair = False
+                    Player.this.pos[0] -= 150
+                Player.this.is_in_stair = False
         elif input_idx == 3:
             if 3 <= my_idx <= 5 or 3 + 12 <= my_idx <= 5 + 12:  # 옆방으로
-                Player2.this.pos = cp.copy(stair_list[my_idx + 3].pos)
+                Player.this.pos = cp.copy(stair_list[my_idx + 3].pos)
             else:
-                Player2.this.pos = cp.copy(self.pos)
+                Player.this.pos = cp.copy(self.pos)
                 if 9 <= my_idx <= 11 or 9 + 12 <= my_idx <= 11 + 12:
                     pass
                 else:
-                    Player2.this.pos[0] += 150
-                Player2.this.is_in_stair = False
-        Player2.this.pos[1] -= 95
+                    Player.this.pos[0] += 150
+                Player.this.is_in_stair = False
+        Player.this.pos[1] -= 95

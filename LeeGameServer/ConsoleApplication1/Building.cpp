@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Building.h"
-
 #include "Player.h"
 
 int Obj::totalObjCnt = 100;

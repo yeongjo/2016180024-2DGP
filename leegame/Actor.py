@@ -30,7 +30,7 @@ class Actor(DrawObj):
     def clear_actors(cls):
         actor_list = Actor.actor_list
         for a in actor_list:
-            ObjsList.active_list.remove_object(a)
+            ObjM.active_list.remove_object(a)
         actor_list.clear()
 
     @classmethod

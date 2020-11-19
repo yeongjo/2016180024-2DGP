@@ -81,7 +81,7 @@ class Cursor(DrawObj):
     def shot(self):
         self.anim.play(3, 0)
         self.shot_sound.play()
-        if Player2.this.check_take_damage(self.mouse_pos) is False:
+        if Player.this.check_take_damage(self.mouse_pos) is False:
             tem_pos = cp.copy(self.mouse_pos)
             # tem_pos[1] -= 150
             Actor.take_damage_shortest_point(tem_pos)

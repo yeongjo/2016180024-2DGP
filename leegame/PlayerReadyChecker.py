@@ -6,13 +6,12 @@ from Sound import Sound
 mouseuser_ready = False
 keyuser_ready = False
 
-view_center = [0,0]
+view_center = get_center()
 
 def reset():
     global mouseuser_ready, keyuser_ready, pop_sound
     mouseuser_ready = False
     keyuser_ready = False
-    view_center = get_center()
     pop_sound = Sound.load('sound/Pop.wav', 100)
 
 def set_mouse_input():

@@ -1,18 +1,17 @@
 from PicoModule import *
 from GamePlay import *
-
+import copy as cp
 from InteractObj import InteractObj
 from Actor import Actor
 from Sound import Sound
 
-class Player2(DrawObj):
+class Player(DrawObj):
     KEY_W, KEY_A, KEY_S, KEY_D = range(4)
     IDLE, WALK, RUN, ACTIVE, DIE, MOVEBODY, ATTACK, HIT = range(8)
-    this = None
 
     def __init__(self):
         super().__init__()
-        Player2.this = self
+        Player.this = self
         self.load_img('img/stair_move.png')
         self.anim2 = Animator()
         self.anim2.load('img/ping.png', 1, 2, np.array([0, 0]))
@@ -86,10 +85,10 @@ class Player2(DrawObj):
         if self.is_in_stair or self.is_die or self.is_paused:  # 죽거나 계단안에 있으면 캐릭터 직접 조종불가
             return
 
-        if self.anim.anim_idx == Player2.HIT:
+        if self.anim.anim_idx == Player.HIT:
             return
 
-        if self.anim.anim_idx == Player2.ATTACK:
+        if self.anim.anim_idx == Player.ATTACK:
             if not self.is_attacking:  # 맞는동작중엔 아무것도못하게
                 if self.anim.anim_arr[self.anim.anim_idx].frame >= 5:
                     # 일정이상 프레임넘어가면 공격함
@@ -119,12 +118,12 @@ class Player2(DrawObj):
                 if self.interact_obj is not None:
                     self.interact_obj.cancel_by_move()
                 if run == TimePassDetector.ACTIVE:
-                    self.anim.play(Player2.RUN)
+                    self.anim.play(Player.RUN)
                     self.cancel_move_body()
                     speed *= 1.8
                 else:
                     if self.moving_body is None:
-                        self.anim.play(Player2.WALK)
+                        self.anim.play(Player.WALK)
                 if self.moving_body is None:
                     if KeyController.x > 0:
                         self.anim.flip = 'h'
@@ -193,7 +192,7 @@ class Player2(DrawObj):
     # 계단 안에서 움직이기
     def move_stair(self, input_key):
         if not self.is_in_stair:
-            if input_key == Player2.KEY_W:
+            if input_key == Player.KEY_W:
                 if self.moving_body is not None:
                     self.cancel_move_body()
                     return
@@ -203,11 +202,11 @@ class Player2(DrawObj):
                         actor.move_body(self)
                         self.movebody_sound.play()
                         self.moving_body = actor
-                        self.anim.play(Player2.MOVEBODY)
+                        self.anim.play(Player.MOVEBODY)
                 else:
-                    if self.anim.anim_idx is not Player2.ATTACK:
+                    if self.anim.anim_idx is not Player.ATTACK:
                         self.attack_sound.play()
-                        self.anim.play(Player2.ATTACK, Player2.IDLE)
+                        self.anim.play(Player.ATTACK, Player.IDLE)
             return
         i = 0
         t_count = len(stair_list)

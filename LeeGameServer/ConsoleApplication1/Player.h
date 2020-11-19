@@ -2,6 +2,7 @@
 #include "Building.h"
 #include "Packets.h"
 
+extern int playerCount;
 
 class Player : public Obj {
 	struct PlayerScore {

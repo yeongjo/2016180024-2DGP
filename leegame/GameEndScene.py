@@ -4,7 +4,7 @@ import PlayerReadyChecker as prc
 import TitleScene as NextScene
 from GameManager import GameManager
 
-objsList = None
+objM = None
 
 background = None
 victory_img = None
@@ -28,7 +28,7 @@ def make_objs():
     
     background.pos = np.array(background.get_halfsize())
 
-is_enter_before = False
+is_first = False
 is_ready_all = False
 ready_time = 1
 ready_remain_time = 2
@@ -44,9 +44,9 @@ def enter():
 
     View.reset()
 
-    global objsList
+    global objM
     if objsList == None:
-        objsList = ObjsList()
+        objsList = ObjM()
     objsList.active()
 
 
@@ -64,7 +64,7 @@ def enter():
 
 
 def update(dt):  # View 각자의 그리기를 불러줌
-    objsList.tick(dt)
+    objM.tick(dt)
 
     if prc.mouseuser_ready or prc.keyuser_ready:
         global ready_remain_time
@@ -80,7 +80,7 @@ def draw():
         pc.update_canvas()
         pc.clear_canvas()
         view.use()
-        objsList.render(view.cam)
+        objM.render(view.cam)
 
         text_pos = get_center()
         text_pos[1] -= 300
@@ -90,7 +90,7 @@ def draw():
 
 def exit():
     bgm.stop()
-    objsList.clear()
+    objM.clear()
 
 def handle_events():
     events = pc.get_events()
