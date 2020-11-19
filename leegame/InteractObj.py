@@ -1,6 +1,5 @@
 from PicoModule import *
 from GamePlay import *
-from Player import Player
 
 
 class InteractObj(DrawObj):
@@ -13,12 +12,13 @@ class InteractObj(DrawObj):
 
     def render(self, cam):
         tem_pos, tem_size = self.calculate_pos_size(cam)
-        fill_rectangle(tem_pos, tem_size, 255, 0, 0)
+        fill_rectangle1(tem_pos, tem_size, 255, 0, 0)
         debug_text(str(self.pos), tem_pos)
         debug_text(str(self.floor_y), tem_pos + np.array([0, 20]))
 
     def interact(self, player_idx, is_interacting=False):
         if self.doing_limit_time >= 0:
+            import Player
             self.is_playing_doing = True
             Player.interact_obj = self
 

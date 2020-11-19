@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "Player.h"
 
-int playerCount = 0;
-
 bool Player::PlayerScore::Update() {
 	if (score >= 100) { return true; }
 	score += increaseScoreAmount;
@@ -19,15 +17,9 @@ void Player::Update(float dt) {
 	if (IsDead())
 		return;
 
-	if (lastInput.isAttack)
-		Attack();
-
-	if (lastInput.isInteraction)
-		Interact();
-
 	if (IsMoving()) {
-		speed = lastInput.isRun ? runSpeed : walkSpeed;
-		pos.x += speed * dt * (float)lastInput.moveDirection;
+		speed = isRun ? runSpeed : walkSpeed;
+		pos.x += speed * dt * (float)moveDirection;
 		SendPlayerPos();
 	}
 }
@@ -35,6 +27,20 @@ void Player::Update(float dt) {
 bool Player::SetInput(ClientKeyInputPacket packet) {
 	if (id != packet.id) return false;
 	lastInput = packet;
+	auto value = lastInput.isDown ? 1 : -1;
+	moveDirection += lastInput.id == KEY_A * value;
+	moveDirection -= lastInput.id == KEY_D * value;
+	switch (lastInput.id) {
+	case KEY_H:
+		Interact();
+		break;
+	case KEY_J:
+		isRun = packet.isDown;
+		break;
+	case KEY_K:
+		Attack();
+		break;
+	}
 
 	return true;
 }
@@ -48,7 +54,6 @@ bool Player::IsDead() const {
 }
 
 void Player::Attack() {
-	lastInput.isAttack = false;
 	auto foundId = PlayersManager::FindNearestPlayer(pos, 150);
 	if(foundId != -1) {
 		// TODO 본인 ID와 foundId를 모든 클라에게 전송
@@ -56,7 +61,6 @@ void Player::Attack() {
 }
 
 void Player::Interact() {
-	lastInput.isInteraction = false;
 	auto interactedObjId = InteractObjManager::Interact(this);
 	if (interactedObjId != -1) {
 		//TODO id 와 interactedObjId 를 클라들에게 보낸다.
@@ -69,7 +73,7 @@ void Player::SetRandomPos() {
 }
 
 bool Player::IsMoving() {
-	return lastInput.moveDirection != 0;
+	return moveDirection != 0;
 }
 
 void Player::SendPlayerPos() {

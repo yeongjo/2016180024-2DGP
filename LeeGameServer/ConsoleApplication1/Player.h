@@ -2,8 +2,6 @@
 #include "Building.h"
 #include "Packets.h"
 
-extern int playerCount;
-
 class Player : public Obj {
 	struct PlayerScore {
 		int score = 0;
@@ -43,6 +41,10 @@ private:
 	float speed = walkSpeed;
 	bool isInStair = false;
 	ClientKeyInputPacket lastInput;
+	int moveDirection = 0;
+	bool isAttack = false;
+	bool isRun = false;
+	bool isInteract = false;
 
 	static int totalPlayerCnt;
 };

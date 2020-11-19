@@ -1,5 +1,6 @@
 from PicoModule import *
 from GamePlay import *
+import copy as cp
 
 class Stair(DrawObj):
 
@@ -9,7 +10,8 @@ class Stair(DrawObj):
         super().__init__()
         self.load_img('img/stair.png')
         self.otherStair = None
-        stair_list.append(self)
+        from Building import Building
+        Building.stairs.append(self)
 
     def set_pos(self, x, y):
         self.pos = np.array([x + self.imgs[0].img.w / 2, y + self.imgs[0].img.h / 2])
@@ -27,20 +29,20 @@ class Stair(DrawObj):
             if my_idx % 3 == 0 and my_idx < 12:
                 return
             if my_idx >= 12 and my_idx % 3 == 0:
-                Player.this.pos = cp.copy(stair_list[my_idx - 10].pos)
+                Player.this.pos = cp.copy(Building.stairs[my_idx - 10].pos)
             else:
-                Player.this.pos = cp.copy(stair_list[my_idx - 1].pos)
+                Player.this.pos = cp.copy(Building.stairs[my_idx - 1].pos)
         elif input_idx == 2:
             if my_idx % 3 == 2 and my_idx >= 12:
                 return
             if my_idx < 12 and my_idx % 3 == 2:
-                Player.this.pos = cp.copy(stair_list[my_idx + 10].pos)
+                Player.this.pos = cp.copy(Building.stairs[my_idx + 10].pos)
             else:
-                Player.this.pos = cp.copy(stair_list[my_idx + 1].pos)
+                Player.this.pos = cp.copy(Building.stairs[my_idx + 1].pos)
 
         elif input_idx == 1:
             if 6 <= my_idx <= 8 or 6 + 12 <= my_idx <= 8 + 12:  # 옆방으로
-                Player.this.pos = cp.copy(stair_list[my_idx - 3].pos)
+                Player.this.pos = cp.copy(Building.stairs[my_idx - 3].pos)
             else:
                 Player.this.pos = cp.copy(self.pos)
                 if 0 <= my_idx <= 2 or 0 + 12 <= my_idx <= 2 + 12:
@@ -50,7 +52,7 @@ class Stair(DrawObj):
                 Player.this.is_in_stair = False
         elif input_idx == 3:
             if 3 <= my_idx <= 5 or 3 + 12 <= my_idx <= 5 + 12:  # 옆방으로
-                Player.this.pos = cp.copy(stair_list[my_idx + 3].pos)
+                Player.this.pos = cp.copy(Building.stairs[my_idx + 3].pos)
             else:
                 Player.this.pos = cp.copy(self.pos)
                 if 9 <= my_idx <= 11 or 9 + 12 <= my_idx <= 11 + 12:

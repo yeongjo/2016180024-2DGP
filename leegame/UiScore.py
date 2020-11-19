@@ -3,10 +3,10 @@ from GamePlay import *
 
 class UiScore(DrawObj):
 
-    def __init__(self, r, g, b):
+    def __init__(self, name):
         super().__init__(1)
-        self.color = (r, g, b)
+        self.name = name
         self.value = 0
 
     def render(self, cam):
-        draw_text(str(self.value), (10, ))
+        draw_text(str(self.value) + ' ' + self.name, (self.pos[0], self.pos[1]))

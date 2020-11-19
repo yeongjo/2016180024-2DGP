@@ -1,17 +1,21 @@
 from PicoModule import *
-from GamePlay import *
+import GamePlay
+import GameManager
+from Building import Building
+import random
 import copy as cp
 from InteractObj import InteractObj
 from Actor import Actor
 from Sound import Sound
 
+
 class Player(DrawObj):
-    KEY_W, KEY_A, KEY_S, KEY_D = range(4)
+    KEY_W, KEY_A, KEY_S, KEY_D = -2, -1, 2, 1
     IDLE, WALK, RUN, ACTIVE, DIE, MOVEBODY, ATTACK, HIT = range(8)
+    g_id = 0
 
     def __init__(self):
         super().__init__()
-        Player.this = self
         self.load_img('img/stair_move.png')
         self.anim2 = Animator()
         self.anim2.load('img/ping.png', 1, 2, np.array([0, 0]))
@@ -33,25 +37,23 @@ class Player(DrawObj):
         self.movebody_sound = Sound.load('sound/GetBody.wav', 100)
         self.die_sound = Sound.load('sound/Die.wav', 100)
 
-        self.init()
-
-    def init(self):
+    def init(self, name):
         random_x = (0, 1920)
-        self.pos[0] = random_x[random.randint(0,1)]
-        self.pos[1] = calculate_floor_height(random.randint(0, 5))
+        self.name = name
+        self.pos[0] = random_x[random.randint(0, 1)]
+        self.pos[1] = GamePlay.calculate_floor_height(random.randint(0, 5))
         self.interact_obj = None  # 있을 때 움직이면 인터렉트 오브젝트 비활성화 용
         self.is_in_stair = False
         self.health = 2
-        self.is_die = False
         self.is_paused = False
-        self.debug_attack_pos = [0,0]
-        self.id = -1
+        self.debug_attack_pos = [0, 0]
+        self.id = Player.g_id
+        Player.g_id += 1
 
         self.is_attacking = False
         self.moving_body = None
 
-
-        viewIdx = len(View.views)-1
+        viewIdx = len(View.views) - 1
         self.half_w = View.views[viewIdx].w // 2
         self.half_h = View.views[viewIdx].h // 2
         View.views[viewIdx].cam.pos = self.pos - np.array([self.half_w, self.half_h - 200])
@@ -68,21 +70,20 @@ class Player(DrawObj):
         self.debug_attack_pos = attack_pos
         actor, distance = Actor.get_shortest_actor(attack_pos)
         if actor is not None:
-            if distance < 150*150:
+            if distance < 150 * 150:
                 actor.take_damage(False)
-
 
     def tick(self, dt):
         self.update_camera(dt)
         self.anim2.tick(dt)  # 머리위에 핑 애니메이션
         end_anim_idx = self.anim.tick(dt)
 
-        if self.is_die and end_anim_idx == ISONCEEND and not self.is_paused: # 죽는게 끝나면
+        if self.is_die() and end_anim_idx == ISONCEEND and not self.is_paused:  # 죽는게 끝나면
             print("키보드 플레이어 죽음")
             self.is_paused = True
             GameManager.round_end(1)
 
-        if self.is_in_stair or self.is_die or self.is_paused:  # 죽거나 계단안에 있으면 캐릭터 직접 조종불가
+        if self.is_in_stair or self.is_die() or self.is_paused:  # 죽거나 계단안에 있으면 캐릭터 직접 조종불가
             return
 
         if self.anim.anim_idx == Player.HIT:
@@ -135,7 +136,6 @@ class Player(DrawObj):
                     elif KeyController.x < 0:
                         self.anim.flip = 'h'
 
-
         self.pos[0] += KeyController.x * speed * dt
         if end_anim_idx == 3:
             InteractObj.interact_to_obj(2)
@@ -145,7 +145,7 @@ class Player(DrawObj):
         self.check_stair()  # 계단에 부딪혔는지 확인
 
     def check_take_damage(self, point):
-        if self.is_die:
+        if self.is_die():
             return
 
         size = np.array([45, 200])
@@ -157,7 +157,7 @@ class Player(DrawObj):
             self.anim.play(7, 0)
             self.health -= 1
             self.hurt_sound.play()
-            if self.health <= 0:
+            if self.is_die():
                 self.die()
             return True
         return False
@@ -168,7 +168,6 @@ class Player(DrawObj):
         self.moving_body = None
 
     def die(self):
-        self.is_die = True
         self.die_sound.play()
         self.anim.play(4)
 
@@ -178,9 +177,9 @@ class Player(DrawObj):
             return
 
         i = 0
-        t_count = len(stair_list)
+        t_count = len(Building.stairs)
         while i < t_count:
-            if stair_list[i].check_player_pos(self.pos):
+            if Building.stairs[i].check_player_pos(self.pos):
                 self.is_in_stair = True
                 if self.moving_body is not None:
                     self.moving_body.is_in_stair = True
@@ -198,7 +197,7 @@ class Player(DrawObj):
                     return
                 actor, distance = Actor.get_shortest_actor(self.pos)
                 if actor.is_die_anim_end:
-                    if distance < 150*150:
+                    if distance < 150 * 150:
                         actor.move_body(self)
                         self.movebody_sound.play()
                         self.moving_body = actor
@@ -209,37 +208,32 @@ class Player(DrawObj):
                         self.anim.play(Player.ATTACK, Player.IDLE)
             return
         i = 0
-        t_count = len(stair_list)
+        t_count = len(Building.stairs)
         while i < t_count:
-            if stair_list[i].check_player_pos(self.pos):
-                stair_list[i].send_player(input_key, i)
+            if Building.stairs[i].check_player_pos(self.pos):
+                Building.stairs[i].send_player(input_key, i)
                 return
             i += 1
 
     def update_camera(self, dt):
-        import TitleScene
-        if TitleScene.isServer:
-            return
-
         player_pos = np.array([self.pos[0] - self.half_w, self.pos[1] - self.half_h + 100])
         cam = View.views[0].cam
         cam_pos = cam.pos
 
-
         # 카메라가 최종 승리자에게 초점이 맞춰짐
-        if GameManager.is_round_end:
+        if GameManager.is_game_end():
             zero = Camera.center
             cam_pos += (zero - cam_pos) * dt * 3
-            cam.size += (cam.default_size*0.45 - cam.size) * dt * 2
+            cam.size += (cam.default_size * 0.45 - cam.size) * dt * 2
 
             cam = View.views[0].cam
             cam_pos = cam.pos
             cam_pos += (zero - cam_pos) * dt * 3
-            cam.size += (cam.default_size*0.45 - cam.size) * dt * 2
+            cam.size += (cam.default_size * 0.45 - cam.size) * dt * 2
         else:
-            half_w, half_h = np.array(get_center())//2
-            cam_offset = 1920//4 -half_w, 1080//4 - half_h
-            cam_pos += (player_pos-cam_offset - cam_pos) * dt * 3
+            half_w, half_h = np.array(get_center()) // 2
+            cam_offset = 1920 // 4 - half_w, 1080 // 4 - half_h
+            cam_pos += (player_pos - cam_offset - cam_pos) * dt * 3
 
     def render(self, cam):
         if self.interact_obj != None:
@@ -249,16 +243,15 @@ class Player(DrawObj):
         if self.is_in_stair:  # 계단안에 있다면 플레이어2에게만 화살표로 표시하고 나머지에겐 안보임
             if cam.idx == 1:
                 tem_pos[1] += 150
-                import TitleScene
-                if TitleScene.isServer:
-                    self.imgs[0].render(tem_pos, tem_size)
+                self.imgs[0].render(tem_pos, tem_size)
             return
 
         self.anim.render(tem_pos, tem_size, cam)
 
-
-        if cam.idx == 0 and not GameManager.is_round_end: return
         tem_pos[1] += 190 * cam.size
         self.anim2.render(tem_pos, tem_size, cam)  # 머리위에 표시되는 핑
 
         tem_pos = (self.debug_attack_pos - cam.pos) * cam.size
+
+    def is_die(self):
+        return self.health <= 0

@@ -2,16 +2,13 @@ from PicoModule import *
 import game_framework
 import random
 from ctypes import *
-
-EACH_FLOOR_HEIGHT_OFFSET_PER_BUILDING = (218, -139, -500)
-MAP_WIDTH = 1920
-MAP_HEIGHT = 1080
-MAP_HALF_WIDTH = MAP_WIDTH // 2
-MAP_HALF_HEIGHT = MAP_HEIGHT // 2
-
-stair_list = []
-ui_scores = []
-playerCnt = 0
+import GameManager
+from Player import Player
+from InteractObj import InteractObj
+from ActorBrain import ActorBrain
+from Actor import Actor
+from Building import *
+import NetworkManager
 
 bgm = None
 
@@ -26,19 +23,9 @@ def restart_game():
     if not is_first: return
     Actor.clear_actors()
     random_actor_generator()
-    Player.this.init()
     for a in View.views:
         a.cam.reset_size()
     InteractObj.reset_all()
-
-
-import GameManager
-from Player import Player
-from InteractObj import InteractObj
-from ActorBrain import ActorBrain
-from Actor import Actor
-from Building import Building
-from UiScore import UiScore
 
 
 # 층은 0층부터 시작
@@ -57,7 +44,7 @@ def make_random_floor_obj(x, floor):
     while i < limit_x - 300:
         random_x = i
         obj = make_obj(random_x, floor)
-        obj_size_w = obj.size
+        obj_size_w = obj.size[0]
         obj_size_hw = obj_size_w // 2
         obj.pos[0] += obj_size_hw
         i += obj_size_w + random.randint(0, 200)
@@ -78,29 +65,17 @@ def random_actor_generator():
 
 def make_objs():
     Building.create_buildings()
-    # 계단끼리 연결
-    for i in range(3):
-        stair_list[i + 3].other_stair = stair_list[i + 6]
-        stair_list[i + 6].other_stair = stair_list[i + 3]
-        stair_list[i + 3 + 12].other_stair = stair_list[i + 6 + 12]
-        stair_list[i + 6 + 12].other_stair = stair_list[i + 3 + 12]
 
     # Make Obj
     for j in range(2):
         for i in range(6):
             make_random_floor_obj(j, i)
 
-    random_actor_generator()
-    Player()
-
-    # ui ----------------------------
-    global ui_scores
-    ui_scores.append(UiScore())
-    ui_scores[len(ui_scores)-1].set_pos(-369, 64)
+    # random_actor_generator()
 
 
 is_first = True
-my_player_id = -1
+objM = None
 
 
 # -----------------------------------main code start-----------------------------------
@@ -118,18 +93,17 @@ def enter():
     global objM
     if objM is None:
         objM = ObjM()
+        objM.active()
 
     global is_first
     if is_first:
         make_objs()
         is_first = False
 
-    GameManager.init()
-
+    GameManager.init(2)
 
 
 def update(dt):  # View 각자의 그리기를 불러줌
-    GameManager.update(dt)
     objM.tick(dt)
 
 
@@ -145,6 +119,16 @@ def exit():
     bgm.stop()
 
 
+clientKeyInputPacket = NetworkManager.ClientKeyInputPacket()
+KEY_A = 97
+KEY_D = 100
+KEY_S = 115
+KEY_W = 119
+KEY_H = 104
+KEY_J = 106
+KEY_K = 107
+
+
 def handle_events():
     events = pc.get_events()
     mouse_pos_x, mouse_pos_y = c_int(), c_int()
@@ -156,29 +140,10 @@ def handle_events():
         # 키보드 입력
         if a.type == pc.SDL_KEYDOWN:
             print(a.key)
-            if a.key == 97:  # a
-                KeyController.x -= 1
-                if KeyController.x < -1:
-                    KeyController.x = -1
-                Player.move_stair(Player.KEY_A)
-            if a.key == 100:  # d
-                KeyController.x += 1
-                if KeyController.x > 1:
-                    KeyController.x = 1
-                Player.move_stair(Player.KEY_D)
-            if a.key == 115:  # s
-                KeyController.interact_input(True)
-                Player.move_stair(Player.KEY_S)
-            if a.key == 119:  # w
-                Player.move_stair(Player.KEY_W)
-
-            # 카메라 줌 확인용
-            if a.key == 61:
-                # View.views[0].cam.size += 0.5
-                Player.is_die = True
-            if a.key == 45:
-                # View.views[0].cam.size -= 0.5
-                GameManager.boardcast_win_player(GameManager.KEYUSER)
+            clientKeyInputPacket.key = a.key
+            if a.key in [KEY_A, KEY_D, KEY_S, KEY_W, KEY_H, KEY_J, KEY_K]:
+                clientKeyInputPacket.isDown = True
+                NetworkManager.TcpSendClientKeyInputPacketToServer(clientKeyInputPacket)
 
             # ESC 게임 종료
             if a.key == pc.SDLK_ESCAPE:
@@ -186,10 +151,6 @@ def handle_events():
                 game_framework.change_state(TitleScene)
 
         if a.type == pc.SDL_KEYUP:
-            if a.key == 97:  # a
-                KeyController.x += 1
-            if a.key == 100:  # d
-                KeyController.x -= 1
-            if a.key == 115:  # s
-                KeyController.interact_input(False)
-
+            if a.key in [KEY_A, KEY_D, KEY_J]:
+                clientKeyInputPacket.isDown = False
+                NetworkManager.TcpSendClientKeyInputPacketToServer(clientKeyInputPacket)

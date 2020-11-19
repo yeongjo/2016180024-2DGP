@@ -68,20 +68,16 @@ void InteractPacket::Deserialize(Json::Value& root) {
 
 void ClientKeyInputPacket::Serialize(Json::Value& root) {
 	root["type"] = (int)type;
-	root["moveDirection"] = moveDirection;
+	root["key"] = key;
 	root["id"] = id;
-	root["isInteraction"] = isInteraction;
-	root["isRun"] = isRun;
-	root["isAttack"] = isAttack;
+	root["isDown"] = isDown;
 }
 
 void ClientKeyInputPacket::Deserialize(Json::Value& root) {
 	type = (EPacketType)root.get("type", -1).asInt();
-	moveDirection = root.get("moveDirection", -1).asInt();
+	key = root.get("key", 0).asInt();
 	id = root.get("id", -1).asInt();
-	isAttack = root.get("isAttack", -1).asBool();
-	isRun = root.get("isRun", -1).asBool();
-	isInteraction = root.get("isInteraction", -1).asBool();
+	isDown = root.get("isDown", false).asBool();
 }
 
 void ScorePacket::Serialize(Json::Value& root) {

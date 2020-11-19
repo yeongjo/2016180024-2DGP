@@ -9,6 +9,10 @@ import random
 objM = None
 bgm = None
 
+is_first = False
+ready_time = 1
+ready_remain_time = 1
+
 def set_window_size_1920():
     change_view_size(1920, 1080)
 
@@ -23,18 +27,13 @@ def make_objs():
     Button(10,10,200,100, "1920", set_window_size_1920)
     Button(10,110,200,200, "1280", set_window_size_1280)
 
-is_first = False
-is_ready_all = False
-ready_time = 1
-ready_remain_time = 1
-isServer = False
+
 # 타이틀 신 들와서 처음 시작
 def enter():
-    global isServer
     random.seed(9000)
-    # isServer = True
     pc.SDL_SetRelativeMouseMode(pc.SDL_FALSE)  # 마우스 화면밖에 못나가게
     KeyController.x = 0
+
     global bgm
     if (bgm == None):
         bgm = pc.load_music('sound/Title.mp3')
@@ -43,14 +42,12 @@ def enter():
 
     View.reset()
     global objM
-    if objsList == None:
-        objsList = ObjM()
-    objsList.active()
-
-    ready_remain_time = ready_time
+    if objM == None:
+        objM = ObjM()
+    objM.active()
 
     global is_first
-    if not is_enter_before:
+    if not is_first:
         make_objs()
 
     prc.reset()

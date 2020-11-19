@@ -16,12 +16,14 @@ def load_defulat_font(text_path="font/HoonWhitecatR.ttf"):
     global font01
     font01 = pc.load_font(text_path, 55)
 
-def fill_rectangle(pos, size, r, g, b, a=255):
+
+def fill_rectangle1(pos, size, r, g, b, a=255):
     x1 = pos[0]
     y1 = pos[1]
     x2 = pos[0] + size[0]
     y2 = pos[1] + size[1]
     fill_rectangle(x1, y1, x2, y2, r, g, b, a)
+
 
 def fill_rectangle(x1, y1, x2, y2, r, g, b, a=255):
     view = View.active_view
@@ -86,6 +88,8 @@ class ObjM:
     objs[1] 오브젝
     objs[2] ui
     '''
+    active_list = None
+
     def __init__(self):
         self.objs = [[], [], []]
 
@@ -117,6 +121,9 @@ class ObjM:
             for b in a:
                 b.tick(dt)
 
+    def active(self):
+        ObjM.active_list = self
+
 
 class View:
     # 윈도우마다 하나씩 있음
@@ -137,7 +144,6 @@ class View:
         self.half_w, self.half_h = w // 2, h // 2
         self.cam = Camera(idx, h / 1080)
         self.use()
-
 
     def change_scene(self):
         cam_pos = self.cam.pos

@@ -3,6 +3,15 @@
 
 class IJsonSerializable;
 
+#define KEY_A 97
+#define	KEY_D 100
+#define	KEY_S 115
+#define	KEY_W 119
+#define	KEY_H 104
+#define	KEY_J 106
+#define	KEY_K 107
+
+
 enum class EPacketType {
 	Error = -1,
 	Player,
@@ -56,10 +65,8 @@ class ClientKeyInputPacket : public IJsonSerializable {
 public:
 	EPacketType type = EPacketType::ClientKeyInput;
 	int id = -1;
-	int moveDirection = 0;
-	bool isInteraction = false;
-	bool isRun = false;
-	bool isAttack = false;
+	int key = 0;
+	bool isDown = false;
 
 	void Serialize(Json::Value& root);
 
