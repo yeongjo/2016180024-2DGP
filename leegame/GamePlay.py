@@ -20,19 +20,19 @@ def calculate_floor_height(floor):
 
 
 def restart_game():
-    if not is_first: return
     Actor.clear_actors()
-    random_actor_generator()
+    # random_actor_generator()
     for a in View.views:
         a.cam.reset_size()
-    InteractObj.reset_all()
 
 
 # 층은 0층부터 시작
-def make_obj(x, floor):
+def make_furniture(x, y):
     t = InteractObj()
     t.pos[0] = x
-    t.pos[1] = calculate_floor_height(floor)
+    t.pos[1] = y
+    t.size[0] = 50
+    t.size[1] = 100
     return t
 
 
@@ -43,11 +43,16 @@ def make_random_floor_obj(x, floor):
     limit_x = MAP_WIDTH - wall_size + offset
     while i < limit_x - 300:
         random_x = i
-        obj = make_obj(random_x, floor)
+        obj = make_furniture(random_x, calculate_floor_height(floor))
         obj_size_w = obj.size[0]
         obj_size_hw = obj_size_w // 2
         obj.pos[0] += obj_size_hw
-        i += obj_size_w + random.randint(0, 200)
+        i += obj_size_w + random.randint(100, 400)
+
+
+def make_furniture_by_packet(packet):
+    for i in range(len(packet)-1):
+        make_furniture(packet[i][0], packet[i][1])
 
 
 def random_actor_generator():
@@ -74,7 +79,6 @@ def make_objs():
     # random_actor_generator()
 
 
-is_first = True
 objM = None
 
 
@@ -95,10 +99,7 @@ def enter():
         objM = ObjM()
         objM.active()
 
-    global is_first
-    if is_first:
-        make_objs()
-        is_first = False
+    make_objs()
 
     GameManager.init(2)
 
@@ -139,7 +140,7 @@ def handle_events():
 
         # 키보드 입력
         if a.type == pc.SDL_KEYDOWN:
-            print(a.key)
+            # print(a.key)
             clientKeyInputPacket.key = a.key
             if a.key in [KEY_A, KEY_D, KEY_S, KEY_W, KEY_H, KEY_J, KEY_K]:
                 clientKeyInputPacket.isDown = True

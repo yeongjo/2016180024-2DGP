@@ -35,16 +35,18 @@ private:
 
 	void SendPlayerPos();
 
+	bool IsControlable();
+
+	void MoveInStair(int key);
+
 	int health = 2;
 	static constexpr float walkSpeed = 300;
 	static constexpr float runSpeed = 300 * 1.8f;
 	float speed = walkSpeed;
-	bool isInStair = false;
-	ClientKeyInputPacket lastInput;
 	int moveDirection = 0;
-	bool isAttack = false;
+	int lookDirec = 1;
 	bool isRun = false;
-	bool isInteract = false;
+	Stair* stayStair = nullptr;
 
 	static int totalPlayerCnt;
 };
@@ -54,5 +56,5 @@ public:
 	static vector<Player*> players;
 
 	// 플레이어 ID 반환, 실패시 -1 반환
-	static int FindNearestPlayer(vec2 point, float maxDistance);
+	static Player* FindNearestPlayer(vec2 point, float maxDistance);
 };

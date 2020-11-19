@@ -11,6 +11,7 @@ Player::Player(): Obj() {
 	id = totalPlayerCnt++;
 	PlayersManager::players.push_back(this);
 	SetRandomPos();
+	SendPlayerPos();
 }
 
 void Player::Update(float dt) {
@@ -25,12 +26,16 @@ void Player::Update(float dt) {
 }
 
 bool Player::SetInput(ClientKeyInputPacket packet) {
-	if (id != packet.id) return false;
-	lastInput = packet;
-	auto value = lastInput.isDown ? 1 : -1;
-	moveDirection += lastInput.id == KEY_A * value;
-	moveDirection -= lastInput.id == KEY_D * value;
-	switch (lastInput.id) {
+	if (IsControlable() || id != packet.id) return false;
+	if(stayStair) {
+		MoveInStair(packet.key);
+		return true;
+	}
+	auto value = packet.isDown ? 1 : -1;
+	moveDirection += packet.key == KEY_A * value;
+	moveDirection -= packet.key == KEY_D * value;
+	lookDirec = moveDirection != 0 ? moveDirection : lookDirec;
+	switch (packet.key) {
 	case KEY_H:
 		Interact();
 		break;
@@ -54,9 +59,13 @@ bool Player::IsDead() const {
 }
 
 void Player::Attack() {
-	auto foundId = PlayersManager::FindNearestPlayer(pos, 150);
-	if(foundId != -1) {
+	auto attackPos = pos;
+	attackPos.x += lookDirec * 100;
+	attackPos.y += 50;
+	auto player = PlayersManager::FindNearestPlayer(attackPos, 150);
+	if(player != nullptr) {
 		// TODO 본인 ID와 foundId를 모든 클라에게 전송
+		player->TakeDamage(1);
 	}
 }
 
@@ -80,17 +89,42 @@ void Player::SendPlayerPos() {
 	//TODO 모든 클라이언트에게 이동된 위치 전송
 }
 
-int PlayersManager::FindNearestPlayer(vec2 point, float maxDistance) {
+bool Player::IsControlable() {
+	return !IsDead() && !stayStair;
+}
+
+void Player::MoveInStair(int key) {
+	switch (key) {
+	case KEY_A:
+		if(stayStair->otherStairs[Stair::LEFT])
+		pos = stayStair->otherStairs[Stair::LEFT]->pos;
+		break;
+	case KEY_D:
+		if (stayStair->otherStairs[Stair::RIGHT])
+		pos = stayStair->otherStairs[Stair::RIGHT]->pos;
+		break;
+	case KEY_W:
+		if (stayStair->otherStairs[Stair::UP])
+		pos = stayStair->otherStairs[Stair::UP]->pos;
+		break;
+	case KEY_S:
+		if (stayStair->otherStairs[Stair::DOWN])
+		pos = stayStair->otherStairs[Stair::DOWN]->pos;
+		break;
+	}
+}
+
+Player* PlayersManager::FindNearestPlayer(vec2 point, float maxDistance) {
 	float min = maxDistance;
-	int foundId = -1;
+	Player* p = nullptr;
 	for (size_t i = 0; i < players.size(); i++) {
 		const float distance = (players[i]->pos - point).length();
 		if (distance < min) {
 			min = distance;
-			foundId = i;
+			p = players[i];
 		}
 	}
-	return foundId;
+	return p;
 }
 
 int Player::totalPlayerCnt = 0;

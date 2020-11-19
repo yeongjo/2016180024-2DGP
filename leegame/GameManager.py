@@ -4,9 +4,11 @@ from UiScore import UiScore
 import string
 import random
 
+FURNITURE_START_IDX = 100
 
 ui_scores = []
 players = []
+interactObjs = []
 my_player_id = -1
 
 
@@ -42,8 +44,29 @@ def update_player_pos(id, pos):
 
 
 def update_interact_state(interactor_id, target_id):
-    if target_id >= 100: # 가구와의 상호작용
-        pass
+    if target_id >= FURNITURE_START_IDX: # 가구와의 상호작용
+        interactor = None
+        for t in players:
+            if t.id == interactor_id:
+                interactor = t
+                break
+        for t in interactObjs:
+            if t.id == target_id:
+                t.interact(interactor)
+                break
+    else:
+        interactor = None
+        for t in players:
+            if t.id == interactor_id:
+                interactor = t
+                break
+        target = None
+        for t in players:
+            if t.id == target_id:
+                target = t
+                break
+        interactor.attack()
+        target.hit()
 
 
 def set_my_player_id(id):
