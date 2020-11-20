@@ -11,26 +11,68 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	int retval;
 	SOCKADDR_IN clientaddr;
 	int addrlen = sizeof(clientaddr);
-	char buf[BUFSIZE];	
+	char buf[BUFSIZE];
 
 	// 클라이언트 정보 얻기    
-	getpeername(client_sock, (SOCKADDR*)&clientaddr, &addrlen);	
+	getpeername(client_sock, (SOCKADDR*)&clientaddr, &addrlen);
 
-	//while (1)
+
+	////recv
+	//retval = recv(client_sock, buf, BUFSIZE, 0);
+	//if (retval == SOCKET_ERROR) { err_display("recv() err 3"); }
+	//string packet = strtok(buf, "}");
+	//packet += "}";
+	//cout << packet << endl;
+
+
+	InteractPacket ip;
+	ip.interactedObjId = 300;
+	ip.interactPlayerId = 1;
+	string s2;
+		
+	int testing = 0;
+
+	PlayerPacket p;
+
+	ClientKeyInputPacket input;
+	Json::CharReaderBuilder b;
+	Json::CharReader* reader(b.newCharReader());
+	std::string errs;
+	Json::Value root;
+
+	while (testing < 10)
 	{
+		if (testing > 100)
+			testing = 0;
+		p.id = 1;
+		p.pos = vec2(1, testing++);
+		string s;
+		CJsonSerializer::Serialize(&p, s);		
+
+		ip.interactedObjId = 100+testing*3;
+		CJsonSerializer::Serialize(&ip, s2);
+
+		//send
+		retval = send(client_sock, s.c_str(), BUFSIZE, 0);
+		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); cout << endl; }
+
+		retval = send(client_sock, s2.c_str(), BUFSIZE, 0);
+		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); cout << endl; }	
+
+		setlocale(LC_ALL, "korean");
+
+		//recv
 		retval = recv(client_sock, buf, BUFSIZE, 0);
 		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); }
+		string packet = strtok(buf, "}");		
+		packet += "}";		
 
-		string packet = strtok(buf, "}");
-		packet += "}";
-		cout << packet << endl;
-	
+		//Parsing
+		reader->parse(packet.c_str(), packet.c_str()+packet.length(), &root, &errs);		
+		input.Deserialize(root);		
+		cout << "key : " << input.key << "\t ID : "<< input.id << "\t isDown : " << input.isDown <<  endl;
+	}	
 
-	MapDataPacket w;
-	CJsonSerializer::Deserialize(&w, packet);
-	cout << w.furniturePos[0][0] << " " << w.furniturePos[0][1] << endl;
-	cout << w.furniturePos[1][0] << " " << w.furniturePos[1][1] << endl;
-	}
 
 	closesocket(client_sock);
 	printf("\n[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트번호=%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
@@ -39,7 +81,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 }
 
 int main()
-{
+{	
 	GameManager gm;	
 	int retval;
 	WSADATA wsa;
@@ -80,8 +122,9 @@ int main()
 	int playerCnt = 0;
 	// 플레이어 들어옴
 	// 클라이언트에게 playerCnt를 ID로 전송
-	
-	while(playerCnt<MAXPLAYER+100)
+	cout << "서버 열림" << endl;
+
+	while (playerCnt < MAXPLAYER)
 	{
 		//accept        
 		addrlen = sizeof(clientaddr);
@@ -96,6 +139,7 @@ int main()
 		playerCnt++;
 	}
 
+	cout << "플레이어 다 들어옴" << endl;
 
 	// 네트워크에 접속되고 나서 호출되어야함
 	gm.Init(playerCnt);
@@ -106,6 +150,7 @@ int main()
 	}
 		
 
+
 	////c++ json 사용 예
 	//MapDataPacket w;
 	//w.furniturePos.push_back({ 1, 0 });
@@ -113,6 +158,15 @@ int main()
 	//string s;
 	//CJsonSerializer::Serialize(&w, s);
 	//cout << s;
+
+
+	/*PlayerPacket p;
+	p.id = 1;
+	p.pos = vec2(1, 3);
+	string s;
+	CJsonSerializer::Serialize(&p, s);
+	cout << s << endl;*/
+
 
 	//MapDataPacket w2;
 	//CJsonSerializer::Deserialize(&w2, s);
