@@ -15,14 +15,22 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
 	// 클라이언트 정보 얻기    
 	getpeername(client_sock, (SOCKADDR*)&clientaddr, &addrlen);	
-			
-	retval = recv(client_sock, buf, BUFSIZE, 0);
-	if (retval == SOCKET_ERROR) { err_display("recv() err 3"); }	
 
-	char* tok2 = strtok(buf, "}");
-	strcat(tok2, "}");
-	cout << tok2 << endl;
+	//while (1)
+	{
+		retval = recv(client_sock, buf, BUFSIZE, 0);
+		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); }
+
+		string packet = strtok(buf, "}");
+		packet += "}";
+		cout << packet << endl;
 	
+
+	MapDataPacket w;
+	CJsonSerializer::Deserialize(&w, packet);
+	cout << w.furniturePos[0][0] << " " << w.furniturePos[0][1] << endl;
+	cout << w.furniturePos[1][0] << " " << w.furniturePos[1][1] << endl;
+	}
 
 	closesocket(client_sock);
 	printf("\n[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트번호=%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
@@ -62,14 +70,18 @@ int main()
 	vector<HANDLE> hThread;
 
 
+	//send socket
+	SOCKET send_sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (send_sock == INVALID_SOCKET) err_quit("socket() err");
+
 	// 네트워크 접속 관련 추가되어야하는곳
 	//...
 	// 접속한 플레이어에게 순서대로 자신의 ID [0~..] 알려줘야함
-	int playerCnt = 0; // 들어온 플레이어 수도 알려줘
+	int playerCnt = 0;
 	// 플레이어 들어옴
 	// 클라이언트에게 playerCnt를 ID로 전송
 	
-	while (1)
+	while(playerCnt<MAXPLAYER+100)
 	{
 		//accept        
 		addrlen = sizeof(clientaddr);
@@ -92,7 +104,7 @@ int main()
 		gm.Update(0.016f);
 		Sleep(16);
 	}
-	
+		
 
 	////c++ json 사용 예
 	//MapDataPacket w;

@@ -6,7 +6,7 @@ class Player : public Obj {
 	struct PlayerScore {
 		int score = 0;
 		int increaseScoreAmount = 0; // 활성화된 가구 수와 비례
-
+		
 		// 게임에서 이겼다면 true
 		bool Update();
 	};

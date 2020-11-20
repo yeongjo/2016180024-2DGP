@@ -87,6 +87,8 @@ bool Player::IsMoving() {
 
 void Player::SendPlayerPos() {
 	//TODO 모든 클라이언트에게 이동된 위치 전송
+
+	
 }
 
 bool Player::IsControlable() {
