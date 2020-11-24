@@ -32,7 +32,7 @@ void print(LPCTSTR pszStr, ...);
 
 #define SERVERIP    "127.0.0.1"
 #define SERVERPORT  9000
-#define BUFSIZE     200
+#define BUFSIZE     1000
 #define MAXPLAYER   2
 
 inline void err_quit(const char* msg)

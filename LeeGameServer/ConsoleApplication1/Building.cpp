@@ -109,8 +109,8 @@ void Building::CreateFurnitures() {
 	MapDataPacket mapData;
 	for (int i = 0; i < furnitures.size(); i++) {
 		mapData.furniturePos.push_back(furnitures[i].pos);
-	}
-	NetworkManager::TcpSendMapDataPacket(mapData);
+	}	
+	SendMapDataPackets(mapData);
 }
 
 // 0~5층까지

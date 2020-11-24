@@ -19,7 +19,7 @@ PACKETTYPE_WINPLAYERID = 4
 PACKETTYPE_MAPDATA = 5
 
 # 패킷 크기
-MAX_PACKET_SIZE = 200
+MAX_PACKET_SIZE = 1000
 
 # 패킷 주고받을거
 RecvPacket = 0
@@ -31,7 +31,7 @@ interactPlayerId, interactedObjId = 0, 0
 CKI_key, CKI_id, CKI_isDown = 0, 0, 0
 scores = 0
 winPlayerId = 0
-furniturePosX, furniturePosY = 0, 0
+furniturePos = 0
 
 
 class ClientKeyInputPacket:
@@ -48,12 +48,12 @@ class ClientKeyInputPacket:
 
 
 # 입력키 패킷으로 만들어서 서버한테 전송
-def TcpSendClientKeyInputPacketToServer(packet):
+def SendClientKeyInputPacketToServer(packet):
     client_socket.sendall(bytes(packet.toJSON(), encoding="utf-8"))
 
 
 # 서버로 부터 패킷 받아옴
-def TcpRecvClientPacketFromServer():
+def RecvClientPacketFromServer():
     global RecvPacket
     rev = client_socket.recv(MAX_PACKET_SIZE)
     RecvPacket = unicode(rev, errors='ignore')
@@ -64,7 +64,7 @@ def TcpRecvClientPacketFromServer():
 
 def PacketParsing(packet):
     global player_id, pos, interactPlayerId, interactedObjId, \
-        CKI_key, CKI_id, CKI_isDown, scores, winPlayerId, furniturePosX, furniturePosY
+        CKI_key, CKI_id, CKI_isDown, scores, winPlayerId, furniturePos
     if packet["type"] == PACKETTYPE_PLAYER:
         player_id = packet["id"]
         pos = [packet["posx"], packet["posy"]]
@@ -80,8 +80,7 @@ def PacketParsing(packet):
     elif packet["type"] == PACKETTYPE_WINPLAYERID:
         winPlayerId = packet["winPlayerId"]
     elif packet["type"] == PACKETTYPE_MAPDATA:
-        furniturePosX = packet["furniturePosX"]
-        furniturePosY = packet["furniturePosY"]
+        furniturePos = [packet["furniturePosX"], packet["furniturePosY"]]
 
 
 def PrintPacketInfo():
@@ -91,12 +90,12 @@ def PrintPacketInfo():
     print("CLINETKEYINPUT \t:", CKI_key, CKI_id, CKI_isDown)
     print("SCORE \t\t\t:", scores)
     print("WINPLAYERID \t:", winPlayerId)
-    print("MAPDATA \t\t:", furniturePosX, furniturePosY)
+    print("MAPDATA \t\t:", furniturePos)
 
 
 #ipAddress = easygui.enterbox("IP 주소 입력해주세요")
 #portNum = easygui.enterbox("포트번호 입력 해주세요")
-ipAddress = '127.0.0.1'
+ipAddress = '192.168.1.176'
 portNum = 9000
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -109,10 +108,11 @@ SendPacket.key = 2
 SendPacket.id = 1.0
 SendPacket.isDown = False
 
+
 while True:
-    TcpRecvClientPacketFromServer()
+    RecvClientPacketFromServer()
     PacketParsing(RecvPacket)
-    TcpSendClientKeyInputPacketToServer(SendPacket)
+    SendClientKeyInputPacketToServer(SendPacket)
     PrintPacketInfo()
     SendPacket.key += 1
     time.sleep(.5)
