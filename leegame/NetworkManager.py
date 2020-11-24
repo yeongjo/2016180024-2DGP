@@ -94,9 +94,9 @@ def PrintPacketInfo():
     print("MAPDATA \t\t:", furniturePosX, furniturePosY)
 
 
-#ipAddress = easygui.enterbox("IP 주소 입력해주세요")
-#portNum = easygui.enterbox("포트번호 입력 해주세요")
-ipAddress = '127.0.0.1'
+ipAddress = easygui.enterbox("IP 주소 입력해주세요")
+# portNum = easygui.enterbox("포트번호 입력 해주세요")
+# ipAddress = '127.0.0.1'
 portNum = 9000
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
