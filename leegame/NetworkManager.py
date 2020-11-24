@@ -23,7 +23,7 @@ MAX_PACKET_SIZE = 200
 
 # 패킷 주고받을거
 RecvPacket = 0
-SendPacket = 0
+# SendPacket = 0
 
 # 패킷내용들
 player_id, pos = 0, 0
@@ -37,15 +37,22 @@ furniturePosX, furniturePosY = 0, 0
 class ClientKeyInputPacket:
     def __init__(self):
         self.type = PACKETTYPE_CLINETKEYINPUT
-        self.id = GameManager.my_player_id  # 플레이어마다 다른 고유한 번호
+        # self.id = GameManager.my_player_id  # 플레이어마다 다른 고유한 번호
+        self.id = 1
         self.key = 0
         self.isDown = False
 
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4)
 
+
+# 입력키 패킷으로 만들어서 서버한테 전송
 def TcpSendClientKeyInputPacketToServer(packet):
-    client_socket.sendall(bytes(packet, encoding="utf-8"))
+    client_socket.sendall(bytes(packet.toJSON(), encoding="utf-8"))
 
 
+# 서버로 부터 패킷 받아옴
 def TcpRecvClientPacketFromServer():
     global RecvPacket
     rev = client_socket.recv(MAX_PACKET_SIZE)
@@ -87,32 +94,37 @@ def PrintPacketInfo():
     print("MAPDATA \t\t:", furniturePosX, furniturePosY)
 
 
-# ipAddress = easygui.enterbox("IP 주소 입력해주세요")
-# portNum = easygui.enterbox("포트번호 입력 해주세요")
-# ipAddress = str("'" + ipAddress + "'")
+#ipAddress = easygui.enterbox("IP 주소 입력해주세요")
+#portNum = easygui.enterbox("포트번호 입력 해주세요")
 ipAddress = '127.0.0.1'
 portNum = 9000
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((ipAddress, portNum))
+client_socket.connect((ipAddress, int(portNum)))
 
-SendPacket = '{ "key" : 1, "id" : 1.0, "isDown" : True }'
+
+# 테스트 패킷
+SendPacket = ClientKeyInputPacket()
+SendPacket.key = 2
+SendPacket.id = 1.0
+SendPacket.isDown = False
 
 while True:
     TcpRecvClientPacketFromServer()
     PacketParsing(RecvPacket)
     TcpSendClientKeyInputPacketToServer(SendPacket)
     PrintPacketInfo()
-    SendPacket = '{ "key" : 2, "id" : 1.0, "isDown" : False }'
+    SendPacket.key += 1
     time.sleep(.5)
 
-client_socket.close()
+
+# client_socket.close()
 
 quit()
 
 # 너가 넣어저야할거
 GameManager.update_ui((12, 43, 552))
-GameManager.update_player_pos(id, pos)
+GameManager.update_player_pos(player_id, pos)
 GameManager.update_interact_state(interactPlayerId, interactedObjId)
-GameManager.set_my_player_id(id)
+GameManager.set_my_player_id(player_id)
 GameManager.boardcast_win_player(winPlayerId)

@@ -4,6 +4,8 @@
 #include "GameManager.h"
 #include "Packets.h"
 
+void send_test(SOCKET sock);
+
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
 	SOCKET client_sock = (SOCKET)arg;
@@ -16,20 +18,41 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	// 클라이언트 정보 얻기    
 	getpeername(client_sock, (SOCKADDR*)&clientaddr, &addrlen);
 
+	ClientKeyInputPacket input;
+	Json::CharReaderBuilder b;
+	Json::CharReader* reader(b.newCharReader());
+	std::string errs;
+	Json::Value root;
 
-	////recv
-	//retval = recv(client_sock, buf, BUFSIZE, 0);
-	//if (retval == SOCKET_ERROR) { err_display("recv() err 3"); }
-	//string packet = strtok(buf, "}");
-	//packet += "}";
-	//cout << packet << endl;
+	while (1)
+	{				
+		//recv
+		retval = recv(client_sock, buf, BUFSIZE, 0);
+		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); }
+		string packet = strtok(buf, "}");		
+		packet += "}";		
 
+		//Parsing
+		reader->parse(packet.c_str(), packet.c_str()+packet.length(), &root, &errs);		
+		input.Deserialize(root);		
+		std::cout << "key : " << input.key << "\t ID : "<< input.id << "\t isDown : " << input.isDown <<  endl;
+		Sleep(160);
+	}	
 
+	closesocket(client_sock);
+	std::printf("\n[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트번호=%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+
+	return 0;
+}
+
+void send_test(SOCKET sock)
+{
+	int retval;
 	InteractPacket ip;
 	ip.interactedObjId = 300;
 	ip.interactPlayerId = 1;
 	string s2;
-		
+
 	int testing = 0;
 
 	PlayerPacket p;
@@ -47,37 +70,20 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		p.id = 1;
 		p.pos = vec2(1, testing++);
 		string s;
-		CJsonSerializer::Serialize(&p, s);		
+		CJsonSerializer::Serialize(&p, s);
 
-		ip.interactedObjId = 100+testing*3;
+		ip.interactedObjId = 100 + testing * 3;
 		CJsonSerializer::Serialize(&ip, s2);
 
 		//send
-		retval = send(client_sock, s.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); cout << endl; }
+		retval = send(sock, s.c_str(), BUFSIZE, 0);
+		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); std::cout << endl; }
 
-		retval = send(client_sock, s2.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); cout << endl; }	
+		retval = send(sock, s2.c_str(), BUFSIZE, 0);
+		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); std::cout << endl; }
 
 		setlocale(LC_ALL, "korean");
-
-		//recv
-		retval = recv(client_sock, buf, BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); }
-		string packet = strtok(buf, "}");		
-		packet += "}";		
-
-		//Parsing
-		reader->parse(packet.c_str(), packet.c_str()+packet.length(), &root, &errs);		
-		input.Deserialize(root);		
-		cout << "key : " << input.key << "\t ID : "<< input.id << "\t isDown : " << input.isDown <<  endl;
-	}	
-
-
-	closesocket(client_sock);
-	printf("\n[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트번호=%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
-
-	return 0;
+	}
 }
 
 int main()
@@ -106,7 +112,7 @@ int main()
 	if (retval == SOCKET_ERROR) err_quit("listen()");
 
 	// 데이터 통신에 사용할 변수
-	SOCKET client_sock;
+	vector<SOCKET> client_sock;
 	SOCKADDR_IN clientaddr;
 	int addrlen;
 	vector<HANDLE> hThread;
@@ -122,24 +128,30 @@ int main()
 	int playerCnt = 0;
 	// 플레이어 들어옴
 	// 클라이언트에게 playerCnt를 ID로 전송
-	cout << "서버 열림" << endl;
+	std::cout << "서버 열림" << endl;
 
 	while (playerCnt < MAXPLAYER)
 	{
+		
 		//accept        
 		addrlen = sizeof(clientaddr);
-		client_sock = accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen);
-		if (client_sock == INVALID_SOCKET) { err_display("accept() err"); break; }
+		client_sock.push_back(accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen));
+		//#client_sock = accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen);
+		if (client_sock[playerCnt] == INVALID_SOCKET) { err_display("accept() err"); break; }
 
-		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트번호=%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+		std::printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트번호=%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 		// 스레드 생성        		
-		hThread.push_back(CreateThread(NULL, 0, ProcessClient, (LPVOID)client_sock, 0, NULL));
-		if (hThread[playerCnt] == NULL) { closesocket(client_sock); }
+		hThread.push_back(CreateThread(NULL, 0, ProcessClient, (LPVOID)client_sock[playerCnt], 0, NULL));
+		if (hThread[playerCnt] == NULL) { closesocket(client_sock[playerCnt]); }
 		else { CloseHandle(hThread[playerCnt]); }
 		playerCnt++;
 	}
 
-	cout << "플레이어 다 들어옴" << endl;
+	send_test(client_sock[0]);
+	send_test(client_sock[1]);
+	/*for (int i = 0 ; i<MAXPLAYER;i++)
+		send_test(client_sock[i]);*/
+	std::cout << "플레이어 다 들어옴" << endl;
 
 	// 네트워크에 접속되고 나서 호출되어야함
 	gm.Init(playerCnt);
