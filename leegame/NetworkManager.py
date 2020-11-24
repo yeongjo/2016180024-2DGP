@@ -93,6 +93,7 @@ def PrintPacketInfo():
     print("MAPDATA \t\t:", furniturePos)
 
 
+
 #ipAddress = easygui.enterbox("IP 주소 입력해주세요")
 #portNum = easygui.enterbox("포트번호 입력 해주세요")
 ipAddress = '192.168.1.176'

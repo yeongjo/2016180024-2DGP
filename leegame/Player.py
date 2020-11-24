@@ -14,6 +14,10 @@ class Player(DrawObj):
     IDLE, WALK, RUN, ACTIVE, DIE, MOVEBODY, ATTACK, HIT = range(8)
     g_id = 0
 
+    @classmethod
+    def RESET(cls):
+        cls.g_id = 0
+
     def __init__(self):
         super().__init__()
         self.load_img('img/stair_move.png')
@@ -61,10 +65,20 @@ class Player(DrawObj):
         View.views[viewIdx].cam.pos = self.pos - np.array([self.half_w, self.half_h - 200])
 
     def attack(self):
-        self.anim.anim_idx = Player.ATTACK
+        self.anim.play(Player.ATTACK, Player.IDLE)
+        self.attack_sound.play()
 
     def hit(self):
-        self.anim.anim_idx = Player.HIT
+        self.anim.play(Player.HIT, Player.IDLE)
+        self.hurt_sound.play()
+        self.health -= 1
+        if self.is_die():
+            self.die()
+
+    def interact(self):
+        self.anim.play(Player.ACTIVE, Player.IDLE)
+        self.interact_sound.play()
+        self.cancel_move_body()
 
     def tick(self, dt):
         self.update_camera(dt)
@@ -92,17 +106,16 @@ class Player(DrawObj):
 
         speed = 300
 
+        # 상호작용
         run = KeyController.moveTime.check(dt)  # s키 동작 상태확인
         if run == TimePassDetector.CLICK:
             # 인터렉트
-            self.anim.play(3, 0)
-            self.interact_sound.play()
-            self.cancel_move_body()
+            pass
         else:
             if self.moving_body is not None:
                 speed = 100
             delta_move_length = np.linalg.norm(self.delta_pos)
-            if delta_move_length <= 50:
+            if delta_move_length <= 50*dt:
                 if self.anim.is_end:
                     if self.moving_body is None:
                         self.anim.play(0)
@@ -126,9 +139,9 @@ class Player(DrawObj):
                     elif self.delta_pos < 0:
                         self.anim.flip = 'h'
 
-        # if end_anim_idx == 3:
+        # if end_anim_idx == Player.ACTIVE:
         #     InteractObj.interact_to_obj(2)
-        # elif end_anim_idx == 4:  # 죽고나면 게임 끝
+        # elif end_anim_idx == Player.DIE:  # 죽고나면 게임 끝
         #     GameManager.round_end(1)
 
         self.check_stair()  # 계단에 부딪혔는지 확인

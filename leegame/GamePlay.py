@@ -101,7 +101,7 @@ def enter():
 
     make_objs()
 
-    GameManager.init(2)
+    GameManager.init()
 
 
 def update(dt):  # View 각자의 그리기를 불러줌
