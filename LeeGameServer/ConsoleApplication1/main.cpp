@@ -9,10 +9,9 @@ int main()
 	setlocale(LC_ALL, "korean");
 
 	InitServerSocket();
-
-	int playerCnt = 2; //?
+		
 	// 네트워크에 접속되고 나서 호출되어야함
-	gm.Init(playerCnt);
+	gm.Init(getPlayerCnt());
 
 	while(true) {
 		gm.Update(0.016f);

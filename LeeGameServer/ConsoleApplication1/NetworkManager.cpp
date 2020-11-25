@@ -1,9 +1,13 @@
 #include "stdafx.h"
 #include "NetworkManager.h"
 
-// 데이터 통신에 사용할 변수
 vector<SOCKET> client_sock;
+int playerCnt = 0;
 
+int getPlayerCnt()
+{
+	return playerCnt;
+}
 
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
@@ -23,6 +27,8 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	std::string errs;
 	Json::Value root;
 
+	SendPlayerIDPacketToClients(playerCnt++);
+
 	while (1)
 	{
 		//recv
@@ -35,7 +41,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		reader->parse(packet.c_str(), packet.c_str() + packet.length(), &root, &errs);
 		input.Deserialize(root);
 		std::cout << "key : " << input.key << "\t ID : " << input.id << "\t isDown : " << input.isDown << endl;
-		Sleep(160);
+		Sleep(16);
 	}
 
 	closesocket(client_sock);
@@ -44,6 +50,20 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	return 0;
 }
 
+void SendPlayerIDPacketToClients(int id)
+{
+	PlayerIdPacket pID;
+	pID.type = EPacketType::PlayerID;	
+	pID.PlayerId = id;
+	int retval;
+	string s;
+	CJsonSerializer::Serialize(&pID, s);
+
+	for (int client = 0; client < client_sock.size(); client++) {
+		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
+		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); std::cout << endl; }
+	}
+}
 
 void SendMapDataPackets(MapDataPacket mapData) {	
 	std::cout << "맵데이터 전송" << endl;
@@ -162,10 +182,9 @@ int InitServerSocket()
 		client_sock.push_back(accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen));
 		//#client_sock = accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen);
 		if (client_sock[playerCnt] == INVALID_SOCKET) { err_display("accept() err"); break; }
-
 		std::printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트번호=%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 		// 스레드 생성        		
-		hThread.push_back(CreateThread(NULL, 0, ProcessClient, (LPVOID)client_sock[playerCnt], 0, NULL));
+		hThread.push_back(CreateThread(NULL, 0, ProcessClient, (LPVOID)client_sock[playerCnt], 0, NULL));		
 		if (hThread[playerCnt] == NULL) { closesocket(client_sock[playerCnt]); }
 		else { CloseHandle(hThread[playerCnt]); }
 		playerCnt++;

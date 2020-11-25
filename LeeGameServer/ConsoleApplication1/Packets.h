@@ -20,6 +20,7 @@ enum class EPacketType {
 	Score,
 	WinPlayerId,
 	MapData,
+	PlayerID,
 };
 
 class CJsonSerializer
@@ -95,8 +96,19 @@ public:
 
 class MapDataPacket : public IJsonSerializable {
 public:
-	EPacketType type = EPacketType::MapData;
+	EPacketType type = EPacketType::MapData;	
 	vector<vec2> furniturePos; // 가구 위치
+
+	void Serialize(Json::Value& root);
+
+	void Deserialize(Json::Value& root);
+};
+
+
+class PlayerIdPacket : public IJsonSerializable {
+public:
+	EPacketType type = EPacketType::PlayerID;
+	int PlayerId = 0; // id
 
 	void Serialize(Json::Value& root);
 

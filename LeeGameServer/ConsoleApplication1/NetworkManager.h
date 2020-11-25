@@ -2,9 +2,12 @@
 #include "Packets.h"
 class MapDataPacket;
 
+int getPlayerCnt();
+
 DWORD WINAPI ProcessClient(LPVOID arg);
 
-
+//처음 접속한 클라에게 아이디 줌
+void SendPlayerIDPacketToClients(int id);
 //클라에게 위치 보냄
 void SendChangedPlayerPositionToClients(PlayerPacket player);
 //클라에게 상호작용한거 보냄
