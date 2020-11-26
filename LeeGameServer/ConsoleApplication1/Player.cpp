@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Player.h"
 
+#include "NetworkManager.h"
+
 bool Player::PlayerScore::Update() {
 	if (score >= 100) { return true; }
 	score += increaseScoreAmount;
@@ -32,8 +34,8 @@ bool Player::SetInput(ClientKeyInputPacket packet) {
 		return true;
 	}
 	auto value = packet.isDown ? 1 : -1;
-	moveDirection += packet.key == KEY_A * value;
-	moveDirection -= packet.key == KEY_D * value;
+	moveDirection += (packet.key == KEY_A) * value;
+	moveDirection -= (packet.key == KEY_D) * value;
 	lookDirec = moveDirection != 0 ? moveDirection : lookDirec;
 	switch (packet.key) {
 	case KEY_H:
@@ -66,13 +68,20 @@ void Player::Attack() {
 	if(player != nullptr) {
 		// TODO 본인 ID와 foundId를 모든 클라에게 전송
 		player->TakeDamage(1);
+		InteractPacket p;
+		p.interactPlayerId = id;
+		p.interactedObjId = player->id;
+		SendInteractPacketToClients(p);
 	}
 }
 
 void Player::Interact() {
 	auto interactedObjId = InteractObjManager::Interact(this);
 	if (interactedObjId != -1) {
-		//TODO id 와 interactedObjId 를 클라들에게 보낸다.
+		InteractPacket p;
+		p.interactPlayerId = id;
+		p.interactedObjId = interactedObjId;
+		SendInteractPacketToClients(p);
 	}
 }
 
@@ -86,9 +95,10 @@ bool Player::IsMoving() {
 }
 
 void Player::SendPlayerPos() {
-	//TODO 모든 클라이언트에게 이동된 위치 전송
-
-	
+	PlayerPacket p;
+	p.pos = pos;
+	p.id = id;
+	SendChangedPlayerPositionToClients(p);
 }
 
 bool Player::IsControlable() {

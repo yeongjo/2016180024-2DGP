@@ -68,15 +68,17 @@ def random_actor_generator():
                 actor.set_brain(brain)
 
 
-def make_objs():
+def make_objs(objs_pos):
     Building.create_buildings()
 
     # Make Obj
-    for j in range(2):
-        for i in range(6):
-            make_random_floor_obj(j, i)
+    # for j in range(2):
+    #     for i in range(6):
+    #         make_random_floor_obj(j, i)
 
     # random_actor_generator()
+    for pos in objs_pos:
+        make_furniture(pos[0], pos[1])
 
 
 objM = None
@@ -120,7 +122,6 @@ def exit():
     bgm.stop()
 
 
-clientKeyInputPacket = NetworkManager.ClientKeyInputPacket()
 KEY_A = 97
 KEY_D = 100
 KEY_S = 115
@@ -128,6 +129,8 @@ KEY_W = 119
 KEY_H = 104
 KEY_J = 106
 KEY_K = 107
+
+clientKeyInputPacket = NetworkManager.ClientKeyInputPacket()
 
 
 def handle_events():
@@ -140,11 +143,10 @@ def handle_events():
 
         # 키보드 입력
         if a.type == pc.SDL_KEYDOWN:
-            # print(a.key)
             clientKeyInputPacket.key = a.key
             if a.key in [KEY_A, KEY_D, KEY_S, KEY_W, KEY_H, KEY_J, KEY_K]:
                 clientKeyInputPacket.isDown = True
-                NetworkManager.TcpSendClientKeyInputPacketToServer(clientKeyInputPacket)
+                NetworkManager.SendClientKeyInputPacketToServer(clientKeyInputPacket)
 
             # ESC 게임 종료
             if a.key == pc.SDLK_ESCAPE:
@@ -154,4 +156,4 @@ def handle_events():
         if a.type == pc.SDL_KEYUP:
             if a.key in [KEY_A, KEY_D, KEY_J]:
                 clientKeyInputPacket.isDown = False
-                NetworkManager.TcpSendClientKeyInputPacketToServer(clientKeyInputPacket)
+                NetworkManager.SendClientKeyInputPacketToServer(clientKeyInputPacket)

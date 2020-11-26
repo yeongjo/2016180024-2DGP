@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "GameManager.h"
 
+#include "NetworkManager.h"
+
 void GameManager::Init(int playerCnt) {
 	Timer::Create(1, true);
 	building.Init();
@@ -17,12 +19,17 @@ void GameManager::Update(float dt) {
 	if (Timer::IsEnd(0)) {
 		// 1초가 지났으면
 		// 유저 점수 증가
+		ScorePacket p;
 		for (auto& player : players) {
 			if (player.score.Update()) {
 				// 누군가 이겼다면 게임종료
-				// TODO 승리 플레이어 모든 클라에게 보냄
+				WinPlayerIdPacket winPlayerIdPacket;
+				winPlayerIdPacket.winPlayerId = player.id;
+				SendWinPlayerIdPacketToClients(winPlayerIdPacket);
 				return;
 			}
+			p.scores.push_back(player.score.score);
 		}
+		SendPlayersScoreToClients(p);
 	}
 }
