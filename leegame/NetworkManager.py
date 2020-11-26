@@ -1,4 +1,4 @@
-import socket
+import socket, threading
 import sys
 import json
 from numpy import unicode
@@ -19,6 +19,7 @@ PACKETTYPE_PLAYERID = 6
 
 # 패킷 크기
 MAX_PACKET_SIZE = 1000
+
 
 # 패킷 주고받을거
 RecvPacket = 0
@@ -96,34 +97,75 @@ def PrintPacketInfo():
     print("MAPDATA \t\t:", furniturePos)
 
 
-# ipAddress = easygui.enterbox("IP 주소 입력해주세요")
-# portNum = easygui.enterbox("포트번호 입력 해주세요")
-ipAddress = '192.168.1.176'
-portNum = 9000
+def wait_for_port(port, host='localhost', timeout=1000.0):
+    global client_socket
+    """Wait until a port starts accepting TCP connections.
+    Args:
+        port (int): Port number.
+        host (str): Host address on which the port should exist.
+        timeout (float): In seconds. How long to wait before raising errors.
+    Raises:
+        TimeoutError: The port isn't accepting connection after time specified in `timeout`.
+    """
+    start_time = time.perf_counter()
+    while True:
+        try:
+            client_socket = socket.create_connection((host, port), timeout=timeout)
+            break
+        except OSError as ex:
+            time.sleep(0.01)
+            if time.perf_counter() - start_time >= timeout:
+                raise TimeoutError('Waited too long for the port {} on host {} to start accepting '
+                                   'connections.'.format(port, host)) from ex
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((ipAddress, int(portNum)))
+
+def SocketInit():
+    global client_socket, ipAddress, portNum, is_ready
+    # ipAddress = easygui.enterbox("IP 주소 입력해주세요")
+    # portNum = easygui.enterbox("포트번호 입력 해주세요")
+    ipAddress = '192.168.1.176'
+    portNum = 9000
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    wait_for_port(int(portNum), (ipAddress))
+    # client_socket.connect((ipAddress, int(portNum)))
+
+
+# 연결되면 계속 받는스레드임
+def ClientRecvThread():
+    global is_connected
+    SocketInit()
+    is_connected = True
+
+    RecvClientPacketFromServerAndClassifyByType()
+    GameManager.set_my_player_id(player_id)  # 한번만
+    while True:
+        # 받는거 스레드로
+        RecvClientPacketFromServerAndClassifyByType()
+        PrintPacketInfo()
+        time.sleep(.1)
+
+
+# 스레드 생성
+threading.Thread(target=ClientRecvThread).start()
 
 # 테스트 패킷
 SendPacket = ClientKeyInputPacket()
 SendPacket.key = 2
-SendPacket.id = 1.0
+SendPacket.id = 0
 SendPacket.isDown = False
 
-while True:
-    RecvClientPacketFromServerAndClassifyByType()
-    SendClientKeyInputPacketToServer(SendPacket)
-    PrintPacketInfo()
-    SendPacket.key += 1
-    time.sleep(.1)
+if is_connected:
+    while True:
+        # 테스트
+        SendPacket.id = my_id
+        SendPacket.key += 1
+
+        SendClientKeyInputPacketToServer(SendPacket)
+
+        # 너가 넣어저야할거
+        GameManager.update_ui((12, 43, 552))
+        GameManager.update_player_pos(player_id, pos)
+        GameManager.update_interact_state(interactPlayerId, interactedObjId)
+        GameManager.boardcast_win_player(winPlayerId)
 
 # client_socket.close()
-
-quit()
-
-# 너가 넣어저야할거
-GameManager.update_ui((12, 43, 552))
-GameManager.update_player_pos(player_id, pos)
-GameManager.update_interact_state(interactPlayerId, interactedObjId)
-GameManager.set_my_player_id(player_id)
-GameManager.boardcast_win_player(winPlayerId)

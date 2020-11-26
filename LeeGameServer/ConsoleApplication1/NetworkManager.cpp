@@ -174,7 +174,7 @@ int InitServerSocket()
 	// 클라이언트에게 playerCnt를 ID로 전송
 	std::cout << "서버 열림" << endl;
 
-	while (playerCnt < MAXPLAYER)
+	while (playerCnt < MAXPLAYER-1)
 	{
 
 		//accept        
@@ -199,7 +199,7 @@ int InitServerSocket()
 			test.pos = vec2(1, j);
 			SendChangedPlayerPositionToClients(test);
 		}
-		Sleep(160);
+		Sleep(16);
 	}	
 
 	std::cout << "플레이어 다 들어옴" << endl;
