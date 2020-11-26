@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "NetworkManager.h"
 
+#include "GameManager.h"
+
 vector<SOCKET> client_sock;
 int playerCnt = 0;
 
@@ -41,7 +43,8 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		reader->parse(packet.c_str(), packet.c_str() + packet.length(), &root, &errs);
 		input.Deserialize(root);
 		std::cout << "key : " << input.key << "\t ID : " << input.id << "\t isDown : " << input.isDown << endl;
-		Sleep(16);
+		GameManager::Self()->UpdatePlayerInput(input);
+		//Sleep(16);
 	}
 
 	closesocket(client_sock);
@@ -190,17 +193,17 @@ int InitServerSocket()
 		playerCnt++;
 	}
 
-	PlayerPacket test;	
+	//PlayerPacket test;	
 
-	for (size_t j = 0; j < 10; j++)
-	{
-		for (int i = 0; i < client_sock.size(); i++) {
-			test.id = i;
-			test.pos = vec2(1, j);
-			SendChangedPlayerPositionToClients(test);
-		}
-		Sleep(16);
-	}	
+	//for (size_t j = 0; j < 10; j++)
+	//{
+	//	for (int i = 0; i < client_sock.size(); i++) {
+	//		test.id = i;
+	//		test.pos = vec2(1, j);
+	//		SendChangedPlayerPositionToClients(test);
+	//	}
+	//	Sleep(16);
+	//}	
 
 	std::cout << "플레이어 다 들어옴" << endl;
 

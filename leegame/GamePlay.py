@@ -1,3 +1,4 @@
+from Building import Building
 from PicoModule import *
 import game_framework
 import random
@@ -51,8 +52,9 @@ def make_random_floor_obj(x, floor):
 
 
 def make_furniture_by_packet(packet):
-    for i in range(len(packet)-1):
-        make_furniture(packet[i][0], packet[i][1])
+    print("받은 가구 수 : ", len(packet[0]))
+    for i in range(len(packet[0])):
+        make_furniture(packet[0][i], packet[1][i])
 
 
 def random_actor_generator():
@@ -68,7 +70,7 @@ def random_actor_generator():
                 actor.set_brain(brain)
 
 
-def make_objs(objs_pos):
+def make_objs():
     Building.create_buildings()
 
     # Make Obj
@@ -77,8 +79,6 @@ def make_objs(objs_pos):
     #         make_random_floor_obj(j, i)
 
     # random_actor_generator()
-    for pos in objs_pos:
-        make_furniture(pos[0], pos[1])
 
 
 objM = None
@@ -102,13 +102,15 @@ def enter():
         objM.active()
 
     make_objs()
-
+    make_furniture_by_packet(NetworkManager.furniturePos)
     GameManager.init()
 
 
 def update(dt):  # View 각자의 그리기를 불러줌
+    global objM
     objM.tick(dt)
-
+    import GameManager
+    GameManager.update()
 
 def draw():
     for view in View.views:
@@ -143,6 +145,7 @@ def handle_events():
 
         # 키보드 입력
         if a.type == pc.SDL_KEYDOWN:
+            clientKeyInputPacket.id = GameManager.g_my_player_id
             clientKeyInputPacket.key = a.key
             if a.key in [KEY_A, KEY_D, KEY_S, KEY_W, KEY_H, KEY_J, KEY_K]:
                 clientKeyInputPacket.isDown = True
@@ -154,6 +157,8 @@ def handle_events():
                 game_framework.change_state(TitleScene)
 
         if a.type == pc.SDL_KEYUP:
+            clientKeyInputPacket.id = GameManager.g_my_player_id
+            clientKeyInputPacket.key = a.key
             if a.key in [KEY_A, KEY_D, KEY_J]:
                 clientKeyInputPacket.isDown = False
                 NetworkManager.SendClientKeyInputPacketToServer(clientKeyInputPacket)

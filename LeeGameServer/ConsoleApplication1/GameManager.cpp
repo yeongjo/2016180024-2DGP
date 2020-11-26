@@ -7,6 +7,7 @@ void GameManager::Init(int playerCnt) {
 	Timer::Create(1, true);
 	building.Init();
 	players.resize(playerCnt);
+	self = this;
 }
 
 void GameManager::Update(float dt) {
@@ -33,3 +34,16 @@ void GameManager::Update(float dt) {
 		SendPlayersScoreToClients(p);
 	}
 }
+
+void GameManager::UpdatePlayerInput(ClientKeyInputPacket packet) {
+	for (auto& player : players) {
+		if (player.SetInput(packet))
+			break;
+	}
+}
+
+GameManager* GameManager::Self() {
+	return self;
+}
+
+GameManager* GameManager::self = nullptr;

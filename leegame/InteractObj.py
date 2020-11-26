@@ -21,7 +21,9 @@ class InteractObj(DrawObj):
         tem_pos[1] += tem_size[1]//2
         fill_rectangle1(tem_pos, tem_size, 40, 40, 40)
         debug_text(str(self.pos), tem_pos)
-        debug_text(str(self.name), tem_pos+np.array([0, 50]))
+        import Font
+        Font.active_font(0, True)
+        Font.draw_text(str(self.name), tem_pos+np.array([0, 50]))
 
     # GameManager에서 서버로부터 들어온 패킷으로 불린다.
     def interact(self, player):

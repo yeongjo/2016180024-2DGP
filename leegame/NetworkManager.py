@@ -20,7 +20,6 @@ PACKETTYPE_PLAYERID = 6
 # 패킷 크기
 MAX_PACKET_SIZE = 1000
 
-
 # 패킷 주고받을거
 RecvPacket = 0
 # SendPacket = 0
@@ -68,19 +67,25 @@ def RecvClientPacketFromServerAndClassifyByType():
     if RecvPacket["type"] == PACKETTYPE_PLAYER:
         player_id = RecvPacket["id"]
         pos = [RecvPacket["posx"], RecvPacket["posy"]]
+        GameManager.update_player_pos(player_id, pos)
     elif RecvPacket["type"] == PACKETTYPE_INTERACT:
         interactPlayerId = RecvPacket["interactPlayerId"]
         interactedObjId = RecvPacket["interactedObjId"]
-    elif RecvPacket["type"] == PACKETTYPE_CLINETKEYINPUT:
-        CKI_key = RecvPacket["key"]
-        CKI_id = RecvPacket["id"]
-        CKI_isDown = RecvPacket["isDown"]
+        GameManager.update_interact_state(interactPlayerId, interactedObjId)
+    # elif RecvPacket["type"] == PACKETTYPE_CLINETKEYINPUT:
+    #     CKI_key = RecvPacket["key"]
+    #     CKI_id = RecvPacket["id"]
+    #     CKI_isDown = RecvPacket["isDown"]
     elif RecvPacket["type"] == PACKETTYPE_SCORE:
         scores = RecvPacket["scores"]
+        GameManager.update_ui(scores)
     elif RecvPacket["type"] == PACKETTYPE_WINPLAYERID:
         winPlayerId = RecvPacket["winPlayerId"]
+        GameManager.boardcast_win_player(winPlayerId)
     elif RecvPacket["type"] == PACKETTYPE_MAPDATA:
         furniturePos = [RecvPacket["furniturePosX"], RecvPacket["furniturePosY"]]
+        import TitleScene
+        TitleScene.game_start()
     elif RecvPacket["type"] == PACKETTYPE_PLAYERID and my_id == -1:
         my_id = RecvPacket["PlayerId"]
         print("나의 ID는 ", my_id, "이다.")
@@ -123,7 +128,7 @@ def SocketInit():
     global client_socket, ipAddress, portNum, is_ready
     # ipAddress = easygui.enterbox("IP 주소 입력해주세요")
     # portNum = easygui.enterbox("포트번호 입력 해주세요")
-    ipAddress = '192.168.1.176'
+    ipAddress = '127.0.0.1'
     portNum = 9000
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     wait_for_port(int(portNum), (ipAddress))
@@ -137,35 +142,32 @@ def ClientRecvThread():
     is_connected = True
 
     RecvClientPacketFromServerAndClassifyByType()
-    GameManager.set_my_player_id(player_id)  # 한번만
+    GameManager.set_my_player_id(my_id)  # 한번만
     while True:
         # 받는거 스레드로
         RecvClientPacketFromServerAndClassifyByType()
-        PrintPacketInfo()
-        time.sleep(.1)
+        # PrintPacketInfo()
+        # time.sleep(.1)
 
 
-# 스레드 생성
-threading.Thread(target=ClientRecvThread).start()
+def StartClientSocket():
+    # 스레드 생성
+    threading.Thread(target=ClientRecvThread).start()
+
 
 # 테스트 패킷
 SendPacket = ClientKeyInputPacket()
 SendPacket.key = 2
 SendPacket.id = 0
 SendPacket.isDown = False
-
-if is_connected:
-    while True:
-        # 테스트
-        SendPacket.id = my_id
-        SendPacket.key += 1
-
-        SendClientKeyInputPacketToServer(SendPacket)
-
-        # 너가 넣어저야할거
-        GameManager.update_ui((12, 43, 552))
-        GameManager.update_player_pos(player_id, pos)
-        GameManager.update_interact_state(interactPlayerId, interactedObjId)
-        GameManager.boardcast_win_player(winPlayerId)
-
-# client_socket.close()
+#
+# if is_connected:
+#     while True:
+#         # 테스트
+#         SendPacket.id = my_id
+#         SendPacket.key += 1
+#
+#         SendClientKeyInputPacketToServer(SendPacket)
+#
+#         # 너가 넣어저야할거
+# # client_socket.close()

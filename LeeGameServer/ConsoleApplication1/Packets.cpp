@@ -84,6 +84,9 @@ void ScorePacket::Serialize(Json::Value& root) {
 	root["type"] = (int)type;
 	for (auto a : scores)
 		root["scores"].append(a);
+	if (scores.size() == 0) {
+		root["scores"].append(-1);
+	}
 }
 
 void ScorePacket::Deserialize(Json::Value& root) {

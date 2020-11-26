@@ -37,8 +37,11 @@ private:
 
 	bool IsControlable();
 
+	Stair* isInStair();
+
 	void MoveInStair(int key);
 
+	
 	int health = 2;
 	static constexpr float walkSpeed = 300;
 	static constexpr float runSpeed = 300 * 1.8f;

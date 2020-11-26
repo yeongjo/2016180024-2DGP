@@ -1,4 +1,5 @@
 import pico2d as pc
+import time
 
 class GameState:
     def __init__(self, state):
@@ -86,6 +87,8 @@ def run(start_state):
     start_state.enter()
     while running:
         dt = pc.get_dt()
+        # if .016 - dt > 0:
+        #     time.sleep(.016 - dt)
         
         stack[-1].handle_events()
         stack[-1].update(dt)

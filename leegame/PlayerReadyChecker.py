@@ -29,7 +29,7 @@ def set_key_input():
 
 
 def check_ready_status():
-    return mouseuser_ready and keyuser_ready
+    return keyuser_ready
 
 
 def render_status(idx, pos=view_center):
@@ -49,4 +49,4 @@ def render_key_status(pos=view_center):
     if keyuser_ready:
         Font.draw_text("키보드 준비완료!", pos)
     else:
-        Font.draw_text("아무 키나 눌러주세요 esc말고요", pos)
+        Font.draw_text("접속 대기중입니다. 종료는 esc", pos)

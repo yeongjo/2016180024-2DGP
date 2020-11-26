@@ -6,6 +6,7 @@
 #include <json/json.h>
 #include <sstream>
 #include "glm/vec2.hpp"
+#include "glm/gtx/norm.hpp"
 #include <vector>
 #include <winsock2.h>
 #include <ws2tcpip.h>

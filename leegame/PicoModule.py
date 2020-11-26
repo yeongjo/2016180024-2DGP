@@ -133,7 +133,7 @@ class View:
 
     def __init__(self, idx):
         if View.is_first_open_canvas:
-            win, ren, w, h = pc.open_canvas(Screen_Width, Screen_Height)
+            win, ren, w, h = pc.open_canvas(Screen_Width, Screen_Height, True)
             View.is_first_open_canvas = False
         else:
             win, ren, w, h = _open_other_canvas(Screen_Width, Screen_Height)

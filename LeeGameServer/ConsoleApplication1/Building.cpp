@@ -4,14 +4,17 @@
 #include "NetworkManager.h"
 #include "Player.h"
 
-int Obj::totalObjCnt = 100;
+#define STAIR_CHECK_DISTANCE 50
+
+int InteractObj::totalObjCnt = 100;
 
 InteractObj::InteractObj() {
+	id = totalObjCnt++;
 	InteractObjManager::interactObjs.push_back(this);
 }
 
 int InteractObj::Interact(Obj* other) {
-	if ((pos - other->pos).length() <= interactDistance) {
+	if (length(pos - other->pos) <= interactDistance) {
 		OnInteracted(other);
 		return id;
 	}
@@ -31,13 +34,13 @@ vector<InteractObj*> InteractObjManager::interactObjs;
 
 Stair::Stair(vec2 pos) {
 	this->pos = pos;
-	otherStairs.resize(4);
+	targetPos.resize(4);
 	for (int i = 0; i < 4; ++i)
-		otherStairs[i] = nullptr;
+		targetPos[i] = pos;
 }
 
-void Stair::SetOtherStair(Stair* other, int idx) {
-	otherStairs[idx] = other;
+void Stair::SetTargetPos(vec2 other, int idx) {
+	targetPos[idx] = other;
 }
 
 void Furniture::OnInteracted(Obj* other) {
@@ -78,13 +81,18 @@ void Building::CreateStairs() {
 	}
 
 	for (int i = 0; i < 6; i++) {
-		stairs[i][1].SetOtherStair(&stairs[i][2], Stair::RIGHT);
-		stairs[i][2].SetOtherStair(&stairs[i][1], Stair::LEFT);
+		stairs[i][1].SetTargetPos(stairs[i][1].pos + vec2(-(STAIR_CHECK_DISTANCE+50), 0), Stair::LEFT);
+		stairs[i][1].SetTargetPos(stairs[i][2].pos, Stair::RIGHT);
+		stairs[i][2].SetTargetPos(stairs[i][2].pos + vec2((STAIR_CHECK_DISTANCE + 50), 0), Stair::RIGHT);
+		stairs[i][2].SetTargetPos(stairs[i][1].pos, Stair::LEFT);
+
+		stairs[i][0].SetTargetPos(stairs[i][0].pos + vec2((STAIR_CHECK_DISTANCE + 50), 0), Stair::RIGHT);
+		stairs[i][3].SetTargetPos(stairs[i][3].pos - vec2((STAIR_CHECK_DISTANCE + 50), 0), Stair::LEFT);
 	}
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 4; j++) {
-			stairs[i][j].SetOtherStair(&stairs[i + 1][j], Stair::DOWN);
-			stairs[i + 1][j].SetOtherStair(&stairs[i][j], Stair::UP);
+			stairs[i][j].SetTargetPos(stairs[i + 1][j].pos, Stair::DOWN);
+			stairs[i + 1][j].SetTargetPos(stairs[i][j].pos, Stair::UP);
 		}
 	}
 }
@@ -92,15 +100,15 @@ void Building::CreateStairs() {
 void Building::CreateFurnitures() {
 	for (size_t x = 0; x < 2; x++) {
 		for (size_t y = 0; y < 6; y++) {
-			float offset = x * MAP_WIDTH - MAP_HALF_WIDTH;
-			float i = WALLSIZE + offset;
-			float limit_x = MAP_WIDTH - WALLSIZE + offset;
-			while (i < limit_x - 300) {
+			float startX = x * (MAP_WIDTH - MAP_HALF_WIDTH);
+			float i = WALLSIZE + startX;
+			float endX = MAP_WIDTH - WALLSIZE + startX;
+			while (i < endX - 300) {
 				float random_x = i;
 				float floorHeight = CalculateFloorHeight(y);
-				Furniture furniture;
-				furniture.pos.x = random_x + (FurnitureImgWidth / 2);
-				furniture.pos.y = floorHeight;
+				auto furniture = new Furniture();
+				furniture->pos.x = random_x + (FurnitureImgWidth / 2);
+				furniture->pos.y = floorHeight;
 				furnitures.push_back(furniture);
 				i += FurnitureImgWidth / 2 + Random(100, 400);
 			}
@@ -108,9 +116,21 @@ void Building::CreateFurnitures() {
 	}
 	MapDataPacket mapData;
 	for (int i = 0; i < furnitures.size(); i++) {
-		mapData.furniturePos.push_back(furnitures[i].pos);
-	}	
+		mapData.furniturePos.push_back(furnitures[i]->pos);
+	}
+	cout << "만들어진 가구 수 : " << furnitures.size() << endl;
 	SendMapDataPackets(mapData);
+}
+
+Stair* Building::IsInStair(vec2 pos) {
+	for(auto& a : stairs) {
+		for(auto& b : a) {
+			if(length(b.pos - pos) < STAIR_CHECK_DISTANCE) {
+				return &b;
+			}
+		}
+	}
+	return nullptr;
 }
 
 // 0~5층까지

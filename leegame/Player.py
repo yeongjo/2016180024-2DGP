@@ -80,10 +80,17 @@ class Player(DrawObj):
         self.interact_sound.play()
         self.cancel_move_body()
 
-    def tick(self, dt):
-        self.update_camera(dt)
-        self.anim2.tick(dt)  # 머리위에 핑 애니메이션
+    def update_pos(self, pos):
+        self.pos[0] = pos[0]
+        self.pos[1] = pos[1]
         self.delta_pos = self.pos - self.prev_pos
+        self.prev_pos = cp.copy(self.pos)
+
+    def tick(self, dt):
+        if self.id == GameManager.g_my_player_id:
+            self.update_camera(dt)
+        self.anim2.tick(dt)  # 머리위에 핑 애니메이션
+
         end_anim_idx = self.anim.tick(dt)
 
         if self.is_die() and end_anim_idx == ISONCEEND and not self.is_paused:  # 죽는게 끝나면
@@ -105,6 +112,7 @@ class Player(DrawObj):
         self.is_attacking = False
 
         speed = 300
+        print("x delta: ", self.delta_pos[0], ", move speed: ", np.linalg.norm(self.delta_pos))
 
         # 상호작용
         run = KeyController.moveTime.check(dt)  # s키 동작 상태확인
@@ -129,14 +137,14 @@ class Player(DrawObj):
                     if self.moving_body is None:
                         self.anim.play(Player.WALK)
                 if self.moving_body is None:
-                    if self.delta_pos > 0:
+                    if self.delta_pos[0] > 0:
                         self.anim.flip = 'h'
-                    elif self.delta_pos < 0:
+                    elif self.delta_pos[0] < 0:
                         self.anim.flip = ''
                 else:
-                    if self.delta_pos > 0:
+                    if self.delta_pos[0] > 0:
                         self.anim.flip = ''
-                    elif self.delta_pos < 0:
+                    elif self.delta_pos[0] < 0:
                         self.anim.flip = 'h'
 
         # if end_anim_idx == Player.ACTIVE:
@@ -175,19 +183,20 @@ class Player(DrawObj):
 
     # tick 에서 불림 계단이랑 부딫히면 계단안에 들어간 상태로 변경
     def check_stair(self):
-        if self.is_in_stair:
-            return
+        # if self.is_in_stair:
+        #     return
 
         i = 0
         t_count = len(Building.stairs)
         while i < t_count:
             if Building.stairs[i].check_player_pos(self.pos):
                 self.is_in_stair = True
-                if self.moving_body is not None:
-                    self.moving_body.is_in_stair = True
-                    self.cancel_move_body()
+                # if self.moving_body is not None:
+                #     self.moving_body.is_in_stair = True
+                #     self.cancel_move_body()
                 return
             i += 1
+        self.is_in_stair = False
 
     # 계단 안에서 움직이기
     def move_stair(self, input_key):
@@ -237,8 +246,8 @@ class Player(DrawObj):
             cam_pos += (player_pos - cam_offset - cam_pos) * dt * 3
 
     def render(self, cam):
-        if self.interact_obj is not None:
-            return
+        # if self.interact_obj is not None:
+        #     return
         tem_pos, tem_size = self.calculate_pos_size(cam)
 
         if self.is_in_stair:  # 계단안에 있다면 플레이어2에게만 화살표로 표시하고 나머지에겐 안보임
@@ -253,6 +262,10 @@ class Player(DrawObj):
         self.anim2.render(tem_pos, tem_size, cam)  # 머리위에 표시되는 핑
 
         tem_pos = (self.debug_attack_pos - cam.pos) * cam.size
+
+        import Font
+        Font.active_font(0, True)
+        Font.draw_text(str(self.name), tem_pos + np.array([0, 50]))
 
     def is_die(self):
         return self.health <= 0

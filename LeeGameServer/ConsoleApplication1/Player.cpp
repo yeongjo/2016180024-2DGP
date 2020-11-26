@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Player.h"
 
+
+#include "GameManager.h"
 #include "NetworkManager.h"
 
 bool Player::PlayerScore::Update() {
@@ -9,7 +11,7 @@ bool Player::PlayerScore::Update() {
 	return false;
 }
 
-Player::Player(): Obj() {
+Player::Player() : Obj() {
 	id = totalPlayerCnt++;
 	PlayersManager::players.push_back(this);
 	SetRandomPos();
@@ -20,7 +22,18 @@ void Player::Update(float dt) {
 	if (IsDead())
 		return;
 
-	if (IsMoving()) {
+	auto stair = isInStair();
+	if (stayStair != stair) {
+		stayStair = stair;
+		if (stayStair) {
+			pos = stayStair->pos;
+			//moveDirection = 0;
+			SendPlayerPos();
+			return;
+		}
+	}
+	
+	if (IsMoving() && !stayStair) {
 		speed = isRun ? runSpeed : walkSpeed;
 		pos.x += speed * dt * (float)moveDirection;
 		SendPlayerPos();
@@ -28,15 +41,23 @@ void Player::Update(float dt) {
 }
 
 bool Player::SetInput(ClientKeyInputPacket packet) {
-	if (IsControlable() || id != packet.id) return false;
-	if(stayStair) {
-		MoveInStair(packet.key);
+	if (!IsControlable() || id != packet.id) return false;
+	if (stayStair) {
+		if(packet.isDown)
+			MoveInStair(packet.key);
 		return true;
 	}
 	auto value = packet.isDown ? 1 : -1;
-	moveDirection += (packet.key == KEY_A) * value;
-	moveDirection -= (packet.key == KEY_D) * value;
+	moveDirection -= (packet.key == KEY_A) * value;
+	moveDirection += (packet.key == KEY_D) * value;
+	if (moveDirection < -1)
+		moveDirection = -1;
+	if (moveDirection > 1)
+		moveDirection = 1;
 	lookDirec = moveDirection != 0 ? moveDirection : lookDirec;
+	if (moveDirection == 0) {
+		SendPlayerPos();
+	}
 	switch (packet.key) {
 	case KEY_H:
 		Interact();
@@ -65,7 +86,7 @@ void Player::Attack() {
 	attackPos.x += lookDirec * 100;
 	attackPos.y += 50;
 	auto player = PlayersManager::FindNearestPlayer(attackPos, 150);
-	if(player != nullptr) {
+	if (player != nullptr) {
 		// TODO 본인 ID와 foundId를 모든 클라에게 전송
 		player->TakeDamage(1);
 		InteractPacket p;
@@ -102,26 +123,32 @@ void Player::SendPlayerPos() {
 }
 
 bool Player::IsControlable() {
-	return !IsDead() && !stayStair;
+	return !IsDead();
+}
+
+Stair* Player::isInStair() {
+	return GameManager::Self()->building.IsInStair(pos);
 }
 
 void Player::MoveInStair(int key) {
 	switch (key) {
 	case KEY_A:
-		if(stayStair->otherStairs[Stair::LEFT])
-		pos = stayStair->otherStairs[Stair::LEFT]->pos;
+		pos = stayStair->targetPos[Stair::LEFT];
+		moveDirection = -1;
+		SendPlayerPos();
 		break;
 	case KEY_D:
-		if (stayStair->otherStairs[Stair::RIGHT])
-		pos = stayStair->otherStairs[Stair::RIGHT]->pos;
+		pos = stayStair->targetPos[Stair::RIGHT];
+		moveDirection = 1;
+		SendPlayerPos();
 		break;
 	case KEY_W:
-		if (stayStair->otherStairs[Stair::UP])
-		pos = stayStair->otherStairs[Stair::UP]->pos;
+		pos = stayStair->targetPos[Stair::UP];
+		SendPlayerPos();
 		break;
 	case KEY_S:
-		if (stayStair->otherStairs[Stair::DOWN])
-		pos = stayStair->otherStairs[Stair::DOWN]->pos;
+		pos = stayStair->targetPos[Stair::DOWN];
+		SendPlayerPos();
 		break;
 	}
 }
@@ -130,7 +157,7 @@ Player* PlayersManager::FindNearestPlayer(vec2 point, float maxDistance) {
 	float min = maxDistance;
 	Player* p = nullptr;
 	for (size_t i = 0; i < players.size(); i++) {
-		const float distance = (players[i]->pos - point).length();
+		const float distance = length(players[i]->pos - point);
 		if (distance < min) {
 			min = distance;
 			p = players[i];

@@ -1,10 +1,14 @@
 #pragma once
 #include "stdafx.h"
 
+
+#include "Building.h"
+#include "Building.h"
+
 #define MAP_WIDTH 1920
 #define MAP_HEIGHT 1080
-#define MAP_HALF_WIDTH MAP_WIDTH/2
-#define MAP_HALF_HEIGHT MAP_HEIGHT/2
+#define MAP_HALF_WIDTH (MAP_WIDTH/2)
+#define MAP_HALF_HEIGHT (MAP_HEIGHT/2)
 #define WALLSIZE 400
 #define FurnitureImgWidth 50
 
@@ -13,19 +17,17 @@ class Player;
 class Obj {
 public:
 	int id = -1;
-	vec2 pos;
+	vec2 pos = vec2(0, 0);
 
 	Obj() {
-		id = totalObjCnt++;
 	}
 	virtual ~Obj(){}
-private:
-	static int totalObjCnt;
 };
 
 class InteractObj : public Obj
 {
 	float interactDistance = 150;
+	static int totalObjCnt;
 protected:
 	virtual void OnInteracted(Obj* other) = 0;
 public:
@@ -46,11 +48,11 @@ public:
 	static constexpr int DOWN = 1;
 	static constexpr int LEFT = 2;
 	static constexpr int RIGHT = 3;
-	vector<Stair*> otherStairs; // 가운데 건물이 맞닿는지점 서로 연결된 계단 포인터
+	vector<vec2> targetPos; // 가운데 건물이 맞닿는지점 서로 연결된 계단 포인터
 
 	Stair(vec2 pos);
 
-	void SetOtherStair(Stair* other, int idx);
+	void SetTargetPos(vec2 other, int idx);
 };
 
 class Furniture : public InteractObj {
@@ -67,9 +69,11 @@ class Building
 
 public:
 	vector<vector<Stair>> stairs;
-	vector<Furniture> furnitures;
+	vector<Furniture*> furnitures;
 
 	void Init();
+	
+	Stair* IsInStair(vec2 pos);
 
 	// 몇 층의 바닥의 높이가 얼마인지 받는 함수
 	static float CalculateFloorHeight(int floor);
@@ -78,5 +82,6 @@ private:
 	void CreateStairs();
 
 	void CreateFurnitures();
+
 };
 

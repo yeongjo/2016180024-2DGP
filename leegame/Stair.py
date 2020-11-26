@@ -19,7 +19,7 @@ class Stair(DrawObj):
     def check_player_pos(self, pos):
         _pos = self.pos - pos
         _len = sum(x * x for x in _pos)
-        if _len < 15000:
+        if _len < 100*100:
             return True
         return False
 
