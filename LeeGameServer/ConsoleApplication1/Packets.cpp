@@ -121,3 +121,14 @@ void MapDataPacket::Deserialize(Json::Value& root) {
 		furniturePos.push_back({ x, y });
 	}
 }
+
+
+void PlayerIdPacket::Serialize(Json::Value& root) {
+	root["type"] = (int)type;
+	root["PlayerId"] = PlayerId;
+}
+
+void PlayerIdPacket::Deserialize(Json::Value& root) {
+	type = (EPacketType)root.get("type", -1).asInt();
+	PlayerId = root.get("PlayerId", -1).asInt();
+}
