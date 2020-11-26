@@ -20,6 +20,7 @@ def init():
     global g_ui_scores, g_players, g_player_cnt
 
     GamePlay.restart_game()
+    g_win_player_idx = -1
     Player.RESET()
     InteractObj.RESET()
 
@@ -89,7 +90,7 @@ def update_ui(data):
 
 
 def is_game_end():
-    return False
+    return g_win_player_idx != -1
 
 
 def boardcast_win_player(win_player_idx):

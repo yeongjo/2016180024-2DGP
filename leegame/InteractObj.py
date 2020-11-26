@@ -1,10 +1,11 @@
+from GameManager import FURNITURE_START_IDX
 from PicoModule import *
 from GamePlay import *
 
 
 class InteractObj(DrawObj):
     # doing_limit_time이 0 이상이면 키는 시간이 존재함
-    g_id = 100
+    g_id = FURNITURE_START_IDX
 
     def __init__(self, doing_limit_time=-1):
         super().__init__()
