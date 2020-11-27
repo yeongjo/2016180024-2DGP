@@ -131,6 +131,7 @@ KEY_W = 119
 KEY_H = 104
 KEY_J = 106
 KEY_K = 107
+KEY_2 = pc.SDLK_2
 
 clientKeyInputPacket = NetworkManager.ClientKeyInputPacket()
 
@@ -145,9 +146,10 @@ def handle_events():
 
         # 키보드 입력
         if a.type == pc.SDL_KEYDOWN:
+            print(a.key)
             clientKeyInputPacket.id = GameManager.g_my_player_id
             clientKeyInputPacket.key = a.key
-            if a.key in [KEY_A, KEY_D, KEY_S, KEY_W, KEY_H, KEY_J, KEY_K]:
+            if a.key in [KEY_A, KEY_D, KEY_S, KEY_W, KEY_H, KEY_J, KEY_K, KEY_2]:
                 clientKeyInputPacket.isDown = True
                 NetworkManager.SendClientKeyInputPacketToServer(clientKeyInputPacket)
 

@@ -43,6 +43,11 @@ void Player::Update(float dt) {
 
 bool Player::SetInput(ClientKeyInputPacket packet) {
 	if (!IsControlable() || id != packet.id) return false;
+	if(packet.key == 50) {
+		score.increaseScoreAmount = 100;
+		return true;
+	}
+	
 	if (stayStair) {
 		if(packet.isDown)
 			MoveInStair(packet.key);

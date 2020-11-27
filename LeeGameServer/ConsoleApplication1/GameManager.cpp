@@ -26,8 +26,6 @@ void GameManager::Update(float dt) {
 		SendFurnitureState();
 	}
 
-	if (players.empty()) return;
-
 
 	for (auto player : players) {
 		if (!player) continue;
@@ -52,9 +50,9 @@ void GameManager::Update(float dt) {
 				SendWinPlayerIdPacketToClients(winPlayerIdPacket);
 				//players.resize(0);
 				Reset();
-				return;
 			}
-			p.scores[player->id] = player->score.score;
+			if(player->id < p.scores.size())
+				p.scores[player->id] = player->score.score;
 		}
 		SendPlayersScoreToClients(p);
 	}
@@ -106,18 +104,18 @@ bool GameManager::IsEveryPlayerDisconnected() {
 }
 
 void GameManager::Reset() {
-	for (int i = 0; i < players.size(); i++)
-	{
-		delete players[i];
-	}
-	players.resize(0);
+	//for (int i = 0; i < players.size(); i++)
+	//{
+	//	delete players[i];
+	//}
+	//players.resize(0);
 
 	setPlayerCnt(0);
 
 	Player::Reset();
 	InteractObj::Reset();
 
-	CloseAllClients();
+	//CloseAllClients();
 
 	cout << "모든 클라이언트가 나가 리셋됨" << endl;
 }

@@ -10,6 +10,7 @@ class IJsonSerializable;
 #define	KEY_H 104
 #define	KEY_J 106
 #define	KEY_K 107
+#define	KEY_2 50
 
 
 enum class EPacketType {

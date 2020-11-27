@@ -27,6 +27,5 @@ private:
 	static GameManager *self;
 	float delaySendFurnitureTime = 0;
 	float defaultDelaySendFurnitureTime = 1;
-	int lastJoinId = 0;
 };
 

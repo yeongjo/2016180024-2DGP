@@ -94,7 +94,7 @@ void SendMapDataPackets(MapDataPacket mapData) {
 
 	for (int client = 0; client < client_sock.size(); client++) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); std::cout << endl; }
+		if (retval == SOCKET_ERROR) { err_display("SendMapDataPackets err"); std::cout << endl; }
 	}
 }
 
@@ -107,7 +107,7 @@ void SendChangedPlayerPositionToClients(PlayerPacket player)
 
 	for (int client = 0; client < client_sock.size(); client++) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); std::cout << endl; }
+		if (retval == SOCKET_ERROR) { err_display("SendChangedPlayerPositionToClients() err"); std::cout << endl; }
 	}	
 }
 
@@ -120,7 +120,7 @@ void SendInteractPacketToClients(InteractPacket interact)
 
 	for (int client = 0; client < client_sock.size(); client++) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); std::cout << endl; }
+		if (retval == SOCKET_ERROR) { err_display("SendInteractPacketToClients() err"); std::cout << endl; }
 	}	
 }
 
@@ -137,10 +137,10 @@ void SendPlayersScoreToClients(ScorePacket score)
 		if (retval == SOCKET_ERROR) {
 			closesocket(client_sock[client]);
 			client_sock.erase(client_sock.begin() + client);
+			cout << "SendPlayersScoreToClients() 나간 플레이어 id: " << GameManager::Self()->players[client]->id << endl;
 			GameManager::Self()->players[client]->Suicide();
 			delete GameManager::Self()->players[client];
 			GameManager::Self()->players.erase(GameManager::Self()->players.begin() + client);
-			err_display("Send() err SendPlayersScoreToClients"); std::cout << endl; 
 		}
 	}
 }
@@ -154,7 +154,7 @@ void SendWinPlayerIdPacketToClients(WinPlayerIdPacket winplayer)
 
 	for (int client = 0; client < client_sock.size(); client++) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); std::cout << endl; }
+		if (retval == SOCKET_ERROR) { err_display("SendWinPlayerIdPacketToClients err"); std::cout << endl; }
 	}
 }
 

@@ -164,6 +164,7 @@ def is_game_end():
 def boardcast_win_player(win_player_idx):
     global g_win_player_idx
     import VictoryBoardcast
+    print(win_player_idx, "가 승리함")
     g_win_player_idx = win_player_idx
     VictoryBoardcast.end_boardcast()
 
