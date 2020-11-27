@@ -21,6 +21,11 @@ int InteractObj::Interact(Obj* other) {
 	return -1;
 }
 
+void InteractObj::Reset()
+{
+	totalObjCnt = 0;
+}
+
 int InteractObjManager::Interact(Obj* other) {
 	for (auto a : interactObjs) {
 		auto interactedObjId = a->Interact(other);

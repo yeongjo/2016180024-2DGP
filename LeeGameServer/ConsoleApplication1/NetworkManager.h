@@ -4,6 +4,8 @@ class MapDataPacket;
 
 int getPlayerCnt();
 
+void setPlayerCnt(int cnt);
+
 DWORD WINAPI ProcessClient(LPVOID arg);
 
 //처음 접속한 클라에게 아이디 줌

@@ -33,6 +33,8 @@ protected:
 public:
 	InteractObj();
 	int Interact(Obj* other);
+
+	static void Reset();
 };
 
 class InteractObjManager {

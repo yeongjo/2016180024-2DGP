@@ -121,6 +121,11 @@ void Player::SendPlayerPos() {
 	SendChangedPlayerPositionToClients(p);
 }
 
+void Player::Reset()
+{
+	totalPlayerCnt = 0;
+}
+
 bool Player::IsControlable() {
 	return !IsDead();
 }

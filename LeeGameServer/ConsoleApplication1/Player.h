@@ -27,6 +27,8 @@ public:
 	bool IsDead() const;
 
 	void SendPlayerPos();
+
+	static void Reset();
 private:
 	void Attack();
 

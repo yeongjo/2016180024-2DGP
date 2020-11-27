@@ -12,6 +12,10 @@ int getPlayerCnt()
 	return playerCnt;
 }
 
+void setPlayerCnt(int cnt) {
+	playerCnt = cnt;
+}
+
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
 	SOCKET client_sock = (SOCKET)arg;
@@ -32,12 +36,24 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
 	cout << "새로 접속한 플레이어 id: " << playerCnt << endl;
 	SendPlayerIDPacketToClients(playerCnt++);
+	
+	//클라 튕겨도 괜찮게 소켓옵션 설정
+	BOOL optval = TRUE;
+	setsockopt(client_sock, SOL_SOCKET, SO_KEEPALIVE, (char*)&optval, sizeof(optval));
+
+	
 
 	while (!startToCloseClients)
 	{
+		if (!optval)
+			std::cout << "나는죽었다" << endl;
 		//recv
 		retval = recv(client_sock, buf, BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); }
+		if (retval == SOCKET_ERROR) {
+			err_display("클라이언트 종료됨..");
+			GameManager::Self()->Reset();
+			return 0;
+		}
 		string packet = strtok(buf, "}");
 		packet += "}";
 
@@ -118,7 +134,13 @@ void SendPlayersScoreToClients(ScorePacket score)
 
 	for (int client = 0; client < client_sock.size(); client++) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); std::cout << endl; }
+		//계속보내는친구가 안받으면 지워줌
+		if (retval == SOCKET_ERROR) {
+			closesocket(client_sock[client]);
+			client_sock.erase(client_sock.begin() + client);
+			GameManager::Self()->players[client] = nullptr;
+			err_display("recv() err 3"); std::cout << endl; 
+		}
 	}
 }
 
@@ -146,6 +168,7 @@ DWORD WINAPI JoinPlayerThread(LPVOID arg) {
 	//socket
 	SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (listen_sock == INVALID_SOCKET) err_quit("socket() err");
+		
 
 	//bind
 	SOCKADDR_IN serveraddr;
@@ -167,7 +190,7 @@ DWORD WINAPI JoinPlayerThread(LPVOID arg) {
 
 	//send socket
 	SOCKET send_sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (send_sock == INVALID_SOCKET) err_quit("socket() err");
+	if (send_sock == INVALID_SOCKET) err_quit("socket() err 대기소켓 못만듬");
 
 	// 네트워크 접속 관련 추가되어야하는곳
 	//...
@@ -178,8 +201,7 @@ DWORD WINAPI JoinPlayerThread(LPVOID arg) {
 	std::cout << "서버 열림" << endl;
 	
 	while (true)
-	{
-
+	{		
 		//accept        
 		addrlen = sizeof(clientaddr);
 		client_sock.push_back(accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen));
@@ -195,26 +217,27 @@ DWORD WINAPI JoinPlayerThread(LPVOID arg) {
 
 void CloseAllClients() {
 	// TODO vector push랑 clear랑 동시에 일어나면 문제생길지도
-	startToCloseClients = true;
+	//startToCloseClients = true;
 
-	// 스레드가 전부 종료되길 기다린다.
-	while(1) {
+	//// 스레드가 전부 종료되길 기다린다.
+	//while(1) {
 
-		Sleep(100);
-	}
-	
-	for (int i = 0; i < hThread.size(); i++)
-	{
-		CloseHandle(hThread[i]);
-	}
-	for (int i = 0; i < client_sock.size(); i++)
-	{
-		closesocket(client_sock[i]);
-	}
+	//	Sleep(100);
+	//}
+	//
+	//for (int i = 0; i < hThread.size(); i++)
+	//{
+	//	CloseHandle(hThread[i]);
+	//}
+	//for (int i = 0; i < client_sock.size(); i++)
+	//{
+	//	closesocket(client_sock[i]);
+	//}
 	client_sock.resize(0);
 	hThread.resize(0);
 
-	startToCloseClients = false;
+	//startToCloseClients = false;
+	playerCnt = 0;
 }
 
 int InitServerSocket()

@@ -129,8 +129,8 @@ def SocketInit():
     global client_socket, ipAddress, portNum, is_ready
     ipAddress = '127.0.0.1'
     portNum = 9000
-    ipAddress = easygui.enterbox("IP 주소 입력해주세요")
-    portNum = easygui.enterbox("포트번호 입력 해주세요")
+    ipAddress = easygui.enterbox("IP 주소 입력해주세요", "IP 주소 입력해주세요", "127.0.0.1")
+    portNum = easygui.enterbox("포트번호 입력 해주세요", "포트번호 입력 해주세요", "9000")
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     wait_for_port(int(portNum), (ipAddress))

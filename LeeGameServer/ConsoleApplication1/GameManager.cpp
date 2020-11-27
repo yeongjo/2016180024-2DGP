@@ -11,6 +11,18 @@ void GameManager::Init() {
 }
 
 void GameManager::Update(float dt) {
+	bool isNotNull = false;
+	for (int i = 0; i < players.size(); i++)
+	{
+		if (players[i] != nullptr) {
+			isNotNull = true;
+			break;
+		}
+	}
+	if (players.size() > 0 && !isNotNull) {
+		Reset();
+		return;
+	}
 	Timer::Tick(dt);
 
 	if (getPlayerCnt() > players.size()) {
@@ -28,7 +40,11 @@ void GameManager::Update(float dt) {
 		//break;
 	}
 
-	for (auto& player : players) {
+	if (players.size() == 0) return;
+
+
+	for (auto player : players) {
+		if (!player) continue;
 		player->Update(dt);
 	}
 
@@ -40,7 +56,8 @@ void GameManager::Update(float dt) {
 
 		// 유저 점수 증가
 		ScorePacket p;
-		for (auto& player : players) {
+		for (auto player : players) {
+			if (!player) continue;
 			if (player->score.Update()) {
 				// 누군가 이겼다면 게임종료
 				WinPlayerIdPacket winPlayerIdPacket;
@@ -73,6 +90,11 @@ void GameManager::Reset() {
 		delete players[i];
 	}
 	players.resize(0);
+
+	setPlayerCnt(0);
+
+	Player::Reset();
+	InteractObj::Reset();
 
 	CloseAllClients();
 }

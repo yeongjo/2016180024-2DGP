@@ -10,15 +10,18 @@ public:
 
 	void UpdatePlayerInput(ClientKeyInputPacket packet);
 
+	void Reset();
+
 	static GameManager* Self();
 
 	vector<Player*> players;
 	Building building;
+	bool isEnd = false;
 private:
-	void Reset();
 	
 	static GameManager *self;
 	float delaySendFurnitureTime = 0;
 	float defaultDelaySendFurnitureTime = 1;
+
 };
 

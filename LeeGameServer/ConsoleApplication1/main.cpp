@@ -13,7 +13,7 @@ int main()
 	// 네트워크에 접속되고 나서 호출되어야함
 	gm.Init();
 
-	while(true) {
+	while(!gm.isEnd) {
 		gm.Update(0.016f);
 		Sleep(16);
 	}	
