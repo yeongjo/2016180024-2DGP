@@ -265,21 +265,25 @@ class Player(DrawObj):
         tem_pos, tem_size = self.calculate_pos_size(cam)
 
         if self.is_in_stair:  # 계단안에 있다면 플레이어2에게만 화살표로 표시하고 나머지에겐 안보임
-            tem_pos[1] += 150* cam.size
-            self.imgs[0].render(tem_pos, tem_size)
+            if GameManager.g_my_player_id == self.id:
+                t_pos = cp.copy(tem_pos)
+                t_pos[1] += 150 * cam.size
+                self.imgs[0].render(t_pos, tem_size)
             return
+        if GameManager.g_my_player_id == self.id:
+            t_pos = cp.copy(tem_pos)
+            t_pos[1] += 190 * cam.size
+            self.anim2.render(t_pos, tem_size, cam)  # 머리위에 표시되는 핑
 
         self.anim.render(tem_pos, tem_size, cam)
 
-        tem_pos[1] += 190 * cam.size
-        self.anim2.render(tem_pos, tem_size, cam)  # 머리위에 표시되는 핑
-
         import Font
         Font.active_font(0, True)
-        tem_pos[1] += 50 * cam.size
-        Font.draw_text(str(self.name), tem_pos)
+        t_pos = cp.copy(tem_pos)
+        t_pos[1] += 250 * cam.size
+        Font.draw_text(str(self.name), t_pos)
 
-        tem_pos = (self.debug_attack_pos - cam.pos) * cam.size
+        # tem_pos = (self.debug_attack_pos - cam.pos) * cam.size
 
     def is_die(self):
         return self.health <= 0
