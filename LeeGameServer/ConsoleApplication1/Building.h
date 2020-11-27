@@ -32,16 +32,17 @@ protected:
 	virtual void OnInteracted(Obj* other) = 0;
 public:
 	InteractObj();
-	int Interact(Obj* other);
+	InteractObj* Interact(Obj* other);
 
 	static void Reset();
+	Player* interactPlayer = nullptr;
 };
 
 class InteractObjManager {
 public:
 	static vector<InteractObj*> interactObjs;
 
-	static int Interact(Obj* other);
+	static InteractObj* Interact(Obj* other);
 };
 
 class Stair : public Obj {
@@ -62,7 +63,6 @@ protected:
 	// 상호작용 한 플레이어에게 점수 추가로 줌
 	void OnInteracted(Obj* other) override;
 public:
-	Player* interactPlayer = nullptr;
 
 };
 

@@ -25,9 +25,9 @@ class Player(DrawObj):
         self.anim2.load('img/ping.png', 1, 2, np.array([0, 0]))
         self.size[0], self.size[1] = 1, 1
         self.anim = Animator()
-        self.anim.load('img/user_idle.png', Animator.TYPE_ONCE, 5, np.array([80, 0]))  # 0
-        self.anim.load('img/user_walk.png', Animator.TYPE_ONCE, 8, np.array([80, 0]))  # 1
-        self.anim.load('img/user_run.png', Animator.TYPE_ONCE, 4, np.array([80, 0]))  # 2
+        self.anim.load('img/user_idle.png', Animator.TYPE_REPEAT, 5, np.array([80, 0]))  # 0
+        self.anim.load('img/user_walk.png', Animator.TYPE_REPEAT, 8, np.array([80, 0]))  # 1
+        self.anim.load('img/user_run.png', Animator.TYPE_REPEAT, 4, np.array([80, 0]))  # 2
         self.anim.load('img/user_active.png', Animator.TYPE_ONCENEXTPLAY, 3, np.array([80, 0]))  # 3
         self.anim.load('img/user_die1.png', Animator.TYPE_ONCE, 9, np.array([80, 0]))  # 4 플레이어한테 죽음
         self.anim.load('img/user_movebody.png', Animator.TYPE_ONCE, 7, np.array([0, 0]))  # 5 시체유기
@@ -55,6 +55,7 @@ class Player(DrawObj):
         self.debug_attack_pos = [0, 0]
         self.id = Player.g_id
         Player.g_id += 1
+        self.dead_remove_remain_time = 2
 
         self.is_attacking = False
         self.moving_body = None
@@ -104,6 +105,9 @@ class Player(DrawObj):
             # GameManager.round_end(1)
             return
         if self.is_die():
+            self.dead_remove_remain_time -= dt
+            if self.dead_remove_remain_time <= 0:
+                GameManager.remove_player(self)
             return
 
         if self.anim.anim_idx == Player.HIT:
@@ -187,6 +191,7 @@ class Player(DrawObj):
 
     def die(self):
         print(self.id, ": die")
+        self.health = 0
         self.die_sound.play()
         self.anim.play(4)
 
@@ -260,7 +265,7 @@ class Player(DrawObj):
         tem_pos, tem_size = self.calculate_pos_size(cam)
 
         if self.is_in_stair:  # 계단안에 있다면 플레이어2에게만 화살표로 표시하고 나머지에겐 안보임
-            tem_pos[1] += 150
+            tem_pos[1] += 150* cam.size
             self.imgs[0].render(tem_pos, tem_size)
             return
 
@@ -269,12 +274,12 @@ class Player(DrawObj):
         tem_pos[1] += 190 * cam.size
         self.anim2.render(tem_pos, tem_size, cam)  # 머리위에 표시되는 핑
 
-        tem_pos = (self.debug_attack_pos - cam.pos) * cam.size
-
         import Font
         Font.active_font(0, True)
         tem_pos[1] += 50 * cam.size
         Font.draw_text(str(self.name), tem_pos)
+
+        tem_pos = (self.debug_attack_pos - cam.pos) * cam.size
 
     def is_die(self):
         return self.health <= 0

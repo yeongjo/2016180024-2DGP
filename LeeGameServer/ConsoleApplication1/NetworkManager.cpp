@@ -50,8 +50,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		//recv
 		retval = recv(client_sock, buf, BUFSIZE, 0);
 		if (retval == SOCKET_ERROR) {
-			err_display("클라이언트 종료됨..");
-			GameManager::Self()->Reset();
+			cout << "recv 대기중 클라이언트 종료됨..\n";
 			return 0;
 		}
 		string packet = strtok(buf, "}");
@@ -138,8 +137,10 @@ void SendPlayersScoreToClients(ScorePacket score)
 		if (retval == SOCKET_ERROR) {
 			closesocket(client_sock[client]);
 			client_sock.erase(client_sock.begin() + client);
-			GameManager::Self()->players[client] = nullptr;
-			err_display("recv() err 3"); std::cout << endl; 
+			GameManager::Self()->players[client]->Suicide();
+			delete GameManager::Self()->players[client];
+			GameManager::Self()->players.erase(GameManager::Self()->players.begin() + client);
+			err_display("Send() err SendPlayersScoreToClients"); std::cout << endl; 
 		}
 	}
 }
@@ -205,13 +206,14 @@ DWORD WINAPI JoinPlayerThread(LPVOID arg) {
 		//accept        
 		addrlen = sizeof(clientaddr);
 		client_sock.push_back(accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen));
+		int lastIdx = client_sock.size()-1;
 		//#client_sock = accept(listen_sock, (SOCKADDR*)&clientaddr, &addrlen);
-		if (client_sock[playerCnt] == INVALID_SOCKET) { err_display("accept() err"); break; }
+		if (client_sock[lastIdx] == INVALID_SOCKET) { err_display("accept() err"); break; }
 		std::printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트번호=%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 		// 스레드 생성        		
-		hThread.push_back(CreateThread(NULL, 0, ProcessClient, (LPVOID)client_sock[playerCnt], 0, NULL));		
-		if (hThread[playerCnt] == NULL) { closesocket(client_sock[playerCnt]); }
-		else { CloseHandle(hThread[playerCnt]); }
+		hThread.push_back(CreateThread(NULL, 0, ProcessClient, (LPVOID)client_sock[lastIdx], 0, NULL));
+		int threadLastIdx = hThread.size() - 1;
+		if (hThread[threadLastIdx] == NULL) { closesocket(client_sock[lastIdx]); } else { CloseHandle(hThread[threadLastIdx]); }
 	}
 }
 
@@ -229,10 +231,10 @@ void CloseAllClients() {
 	//{
 	//	CloseHandle(hThread[i]);
 	//}
-	//for (int i = 0; i < client_sock.size(); i++)
-	//{
-	//	closesocket(client_sock[i]);
-	//}
+	for (int i = 0; i < client_sock.size(); i++)
+	{
+		closesocket(client_sock[i]);
+	}
 	client_sock.resize(0);
 	hThread.resize(0);
 
@@ -256,9 +258,7 @@ int InitServerSocket()
 	//		SendChangedPlayerPositionToClients(test);
 	//	}
 	//	Sleep(16);
-	//}	
-
-	std::cout << "플레이어 다 들어옴" << endl;
+	//}
 
 
 	/*closesocket(listen_sock);

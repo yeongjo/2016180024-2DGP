@@ -28,6 +28,10 @@ public:
 
 	void SendPlayerPos();
 
+	void Suicide();
+
+	static int GetTotalPlayerCnt();
+
 	static void Reset();
 private:
 	void Attack();

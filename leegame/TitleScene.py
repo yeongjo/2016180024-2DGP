@@ -19,13 +19,19 @@ def game_start():
 
 def set_window_size_1920():
     change_view_size(1920, 1080)
+    import Font
+    Font.load_font(1)
 
 
 def set_window_size_1280():
     change_view_size(1280, 720)
+    import Font
+    Font.load_font(1280.0 / 1920.0)
 
 def set_window_size_720():
     change_view_size(720, 405)
+    import Font
+    Font.load_font(720.0 / 1920.0)
 
 
 def make_objs():
@@ -33,14 +39,15 @@ def make_objs():
     ui_mouse.load_img('img/Title.png')
     ui_mouse.pos = np.array(ui_mouse.get_halfsize())
 
-    Button(10, 10, 200, 100, "1920", set_window_size_1920)
-    Button(10, 110, 200, 200, "1280", set_window_size_1280)
-    Button(10, 210, 200, 300, "720", set_window_size_720)
-
+    default_scale = 1280.0/1920.0
+    Button(10*default_scale, 10*default_scale, 200*default_scale, 100*default_scale, "1920", set_window_size_1920)
+    Button(10*default_scale, 110*default_scale, 200*default_scale, 200*default_scale, "1280", set_window_size_1280)
+    Button(10*default_scale, 210*default_scale, 200*default_scale, 300*default_scale, "720", set_window_size_720)
 
 # 타이틀 신 들와서 처음 시작
 def enter():
-    set_window_size_1280()
+    set_window_size_720()
+
     random.seed(9000)
     pc.SDL_SetRelativeMouseMode(pc.SDL_FALSE)  # 마우스 화면밖에 못나가게
     KeyController.x = 0

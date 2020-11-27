@@ -11,36 +11,22 @@ void GameManager::Init() {
 }
 
 void GameManager::Update(float dt) {
-	bool isNotNull = false;
-	for (int i = 0; i < players.size(); i++)
-	{
-		if (players[i] != nullptr) {
-			isNotNull = true;
-			break;
-		}
-	}
-	if (players.size() > 0 && !isNotNull) {
-		Reset();
-		return;
-	}
+	IsEveryPlayerDisconnected();
 	Timer::Tick(dt);
 
-	if (getPlayerCnt() > players.size()) {
-		//delaySendFurnitureTime += dt;
-		//if (delaySendFurnitureTime > defaultDelaySendFurnitureTime) {
-		//	delaySendFurnitureTime = 0;
+	if (getPlayerCnt() > Player::GetTotalPlayerCnt()) {
 		building.SendFurnitureData();
 		players.push_back(new Player());
 		for (int i = 0; i < players.size(); i++)
 		{
+			if (!players[i] || players[i]->IsDead()) 
+				continue;
 			players[i]->SendPlayerPos();
 		}
-
-		//}
-		//break;
+		SendFurnitureState();
 	}
 
-	if (players.size() == 0) return;
+	if (players.empty()) return;
 
 
 	for (auto player : players) {
@@ -56,6 +42,7 @@ void GameManager::Update(float dt) {
 
 		// 유저 점수 증가
 		ScorePacket p;
+		p.scores.resize(Player::GetTotalPlayerCnt());
 		for (auto player : players) {
 			if (!player) continue;
 			if (player->score.Update()) {
@@ -67,21 +54,55 @@ void GameManager::Update(float dt) {
 				Reset();
 				return;
 			}
-			p.scores.push_back(player->score.score);
+			p.scores[player->id] = player->score.score;
 		}
 		SendPlayersScoreToClients(p);
 	}
 }
 
 void GameManager::UpdatePlayerInput(ClientKeyInputPacket packet) {
-	for (auto& player : players) {
+	for (auto player : players) {
+		if(player)
 		if (player->SetInput(packet))
 			break;
 	}
 }
 
+void GameManager::SendFurnitureState() {
+	for (size_t i = 0; i < building.furnitures.size(); i++)
+	{
+		if (!building.furnitures[i]->interactPlayer)
+			continue;
+		InteractPacket p;
+		p.interactPlayerId = building.furnitures[i]->interactPlayer->id;
+		p.interactedObjId = building.furnitures[i]->id;
+		SendInteractPacketToClients(p);
+	}
+	cout << "가구 정보 보냄" << endl;
+}
+
+void GameManager::KillPlayer(int idx) {
+	players[idx]->Suicide();
+}
+
 GameManager* GameManager::Self() {
 	return self;
+}
+
+bool GameManager::IsEveryPlayerDisconnected() {
+	bool isNotNull = false;
+	for (int i = 0; i < players.size(); i++)
+	{
+		if (players[i] != nullptr) {
+			isNotNull = true;
+			break;
+		}
+	}
+	if (players.size() > 0 && !isNotNull) {
+		Reset();
+		return true;
+	}
+	return false;
 }
 
 void GameManager::Reset() {
@@ -97,6 +118,8 @@ void GameManager::Reset() {
 	InteractObj::Reset();
 
 	CloseAllClients();
+
+	cout << "모든 클라이언트가 나가 리셋됨" << endl;
 }
 
 GameManager* GameManager::self = nullptr;

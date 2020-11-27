@@ -22,6 +22,27 @@ def end_boardcast():
     EndVictoryBoardcast(img, center, 2.0)
 
 
+def disconnect_boardcast():
+    view = View.active_view
+    center = [view.half_w, view.half_h]
+    DisconnectBoardcast("disconnected from server", center, 2.0)
+
+
+class DisconnectBoardcast(TextBoardcast):
+    def exit(self):
+        print("RoundBoardcast End")
+        GameManager.end_boardcast()
+
+    def render(self, cam):
+        off = 300
+        self.render_rect()
+        import Font
+        Font.active_font(3, True)
+        pos = cp.copy(self.pos)
+        pos[0] -= 50
+        Font.draw_text(self.text, pos, (230, 230, 230))
+
+
 class VictoryBoardcast(ImgBoardcast):
     def __init__(self, imgs, pos, remain_time=1.0):
         super().__init__(imgs, pos, remain_time)

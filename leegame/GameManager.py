@@ -90,21 +90,41 @@ def update_player_pos(id, pos):
 
 def update():
     create_player_with_queue()
+    later_update_furniture_datas()
+
+
+g_interact_queue = []
+def later_update_furniture_datas():
+    global g_interact_queue
+    if len(g_interactObjs) == 0:
+        return
+    for interactor_id, target_id in g_interact_queue:
+        update_interact_state(interactor_id, target_id)
+    g_interact_queue.clear()
 
 
 def update_interact_state(interactor_id, target_id):
+    global g_interact_queue
     if target_id >= FURNITURE_START_IDX:  # 가구와의 상호작용
-        interactor = None
-        for t, s in g_players_and_scores.values():
-            if t.id == interactor_id:
-                interactor = t
-                interactor.interact()
-                break
-        for t in g_interactObjs:
-            if t.id == target_id:
-                t.interact(interactor)
-                break
+        if len(g_interactObjs) == 0:
+            g_interact_queue.append((interactor_id, target_id))
+            return
+        else:
+            for t, s in g_players_and_scores.values():
+                if t.id == interactor_id:
+                    t.interact()
+                    for t1 in g_interactObjs:
+                        if t1.id == target_id:
+                            t1.interact(t)
+                            return
+                    return
     else:
+        # 사람과 상호작용
+        if interactor_id == target_id:
+            for t, s in g_players_and_scores.values():
+                if t.id == interactor_id:
+                    t.die()
+            return
         for t, s in g_players_and_scores.values():
             if t.id == interactor_id:
                 t.attack()
@@ -132,8 +152,9 @@ def update_ui(data):
 
     scores = [value[1] for value in g_players_and_scores.values()]
     scores.sort(key=lambda x: x.value, reverse=True)
+    scale = View.active_view.h / 1080.0
     for i in range(len(scores)):
-        scores[i].pos[1] = View.active_view.h - 100 - i * 100
+        scores[i].pos[1] = View.active_view.h - 100*scale - i * 100*scale
 
 
 def is_game_end():
@@ -159,3 +180,13 @@ def is_local_player_win():
 
 def end_game():
     game_framework.quit()
+
+
+def remove_player(player):
+    for k, v in g_players_and_scores.items():
+        if v[0] == player:
+            ObjM.active_list.remove_object(player)
+            ObjM.active_list.remove_object(v[1])
+            g_players_and_scores.pop(k)
+            make_player_queue.pop(k)
+            break

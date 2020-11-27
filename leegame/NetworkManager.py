@@ -147,7 +147,12 @@ def ClientRecvThread():
 
     while True:
         # 받는거 스레드로
-        RecvClientPacketFromServerAndClassifyByType()
+        try:
+            RecvClientPacketFromServerAndClassifyByType()
+        except socket.error:
+            from VictoryBoardcast import disconnect_boardcast
+            disconnect_boardcast()
+            break
         # PrintPacketInfo()
         # time.sleep(.1)
 

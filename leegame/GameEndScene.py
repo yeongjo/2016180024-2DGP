@@ -36,7 +36,7 @@ def make_objs():
 is_first = False
 is_ready_all = False
 ready_time = 1
-ready_remain_time = 0
+ready_remain_time = 3
 objM = None
 
 def enter():
@@ -65,7 +65,7 @@ def enter():
     #     victory_img.pos[1] = 1080 - victory_img.get_halfsize()[1] + 100
 
     prc.reset()
-
+    prc.keyuser_ready = True
     is_enter_before = True
 
 

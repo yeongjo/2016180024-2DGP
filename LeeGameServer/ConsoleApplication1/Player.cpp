@@ -98,10 +98,13 @@ void Player::Attack() {
 }
 
 void Player::Interact() {
-	auto interactedObjId = InteractObjManager::Interact(this);
+	auto interactedObj = InteractObjManager::Interact(this);
 	InteractPacket p;
 	p.interactPlayerId = id;
-	p.interactedObjId = interactedObjId != -1 ? interactedObjId : 1000;
+	p.interactedObjId = interactedObj != nullptr ? interactedObj->id : 1000;
+	//if(interactedObj) {
+	//	interactedObj->interactPlayer = this;
+	//}
 	SendInteractPacketToClients(p);
 }
 
@@ -119,6 +122,18 @@ void Player::SendPlayerPos() {
 	p.pos = pos;
 	p.id = id;
 	SendChangedPlayerPositionToClients(p);
+}
+
+void Player::Suicide() {
+	InteractPacket p;
+	p.interactPlayerId = id;
+	p.interactedObjId = id;
+	SendInteractPacketToClients(p);
+	SendInteractPacketToClients(p);
+}
+
+int Player::GetTotalPlayerCnt() {
+	return totalPlayerCnt;
 }
 
 void Player::Reset()

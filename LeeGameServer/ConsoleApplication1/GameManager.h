@@ -10,6 +10,10 @@ public:
 
 	void UpdatePlayerInput(ClientKeyInputPacket packet);
 
+	void SendFurnitureState();
+
+	void KillPlayer(int idx);
+
 	void Reset();
 
 	static GameManager* Self();
@@ -18,10 +22,11 @@ public:
 	Building building;
 	bool isEnd = false;
 private:
+	bool IsEveryPlayerDisconnected();
 	
 	static GameManager *self;
 	float delaySendFurnitureTime = 0;
 	float defaultDelaySendFurnitureTime = 1;
-
+	int lastJoinId = 0;
 };
 

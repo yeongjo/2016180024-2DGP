@@ -13,12 +13,12 @@ InteractObj::InteractObj() {
 	InteractObjManager::interactObjs.push_back(this);
 }
 
-int InteractObj::Interact(Obj* other) {
+InteractObj* InteractObj::Interact(Obj* other) {
 	if (length(pos - other->pos) <= interactDistance) {
 		OnInteracted(other);
-		return id;
+		return this;
 	}
-	return -1;
+	return nullptr;
 }
 
 void InteractObj::Reset()
@@ -26,13 +26,13 @@ void InteractObj::Reset()
 	totalObjCnt = 0;
 }
 
-int InteractObjManager::Interact(Obj* other) {
+InteractObj* InteractObjManager::Interact(Obj* other) {
 	for (auto a : interactObjs) {
 		auto interactedObjId = a->Interact(other);
-		if (interactedObjId != -1)
+		if (interactedObjId != nullptr)
 			return interactedObjId;
 	}
-	return -1;
+	return nullptr;
 }
 
 vector<InteractObj*> InteractObjManager::interactObjs;
