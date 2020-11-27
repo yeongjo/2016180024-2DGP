@@ -2,23 +2,23 @@
 
 class Timer {
 	class DelayC {
-		int remainTime;
-		int _remainTime = 0;
+		float remainTime;
+		float _remainTime = 0;
 		bool isLoop;
 		bool isBreak = false;
 
 	public:
 		int idx = 0;
 
-		DelayC(int _remain, bool _isLoop, bool beginStart, int id);
+		DelayC(float _remain, bool _isLoop, bool beginStart, int id);
 
-		bool Tick(int add = 1);
+		bool Tick(float add = 1);
 
 		void SetEnd();
 
-		void SetRemainTime(int _remain, bool _isLoop);
+		void SetRemainTime(float _remain, bool _isLoop);
 
-		void ChangeRemainTime(int time);
+		void ChangeRemainTime(float time);
 
 		bool IsEnd();
 
@@ -34,19 +34,19 @@ class Timer {
 	static int id;
 public:
 	// First return id is 0
-	static int Create(int _remainTime, bool _isLoop = false, bool beginStart = true);
+	static int Create(float _remainTime, bool _isLoop = false, bool beginStart = true);
 
 	// input custom ID
-	static int Create(int _remainTime, int _id, bool _isLoop = false, bool beginStart = true);
+	static int Create(float _remainTime, int _id, bool _isLoop = false, bool beginStart = true);
 
 	// must call this on other tick
-	static void Tick(int add = 1);
+	static void Tick(float add = 1);
 
 	static bool IsEnd(int idx);
 
 	static void SetEnd(int idx);
 
-	static void ChangeEndTime(int idx, int time);
+	static void ChangeEndTime(int idx, float time);
 
 	static void Reset(int idx);
 

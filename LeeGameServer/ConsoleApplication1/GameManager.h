@@ -4,7 +4,7 @@
 
 class GameManager {
 public:
-	void Init(int playerCnt);
+	void Init();
 
 	void Update(float dt);
 
@@ -12,9 +12,13 @@ public:
 
 	static GameManager* Self();
 
-	vector<Player> players;
+	vector<Player*> players;
 	Building building;
 private:
+	void Reset();
+	
 	static GameManager *self;
+	float delaySendFurnitureTime = 0;
+	float defaultDelaySendFurnitureTime = 1;
 };
 

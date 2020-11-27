@@ -17,9 +17,10 @@ class Stair(DrawObj):
         self.pos = np.array([x + self.imgs[0].img.w / 2, y + self.imgs[0].img.h / 2])
 
     def check_player_pos(self, pos):
-        _pos = self.pos - pos
+        tem_pos = np.array([self.pos[0] - self.imgs[0].img.w / 2, self.pos[1] - self.imgs[0].img.h / 2])
+        _pos = tem_pos - pos
         _len = sum(x * x for x in _pos)
-        if _len < 100*100:
+        if _len < 30*30:
             return True
         return False
 

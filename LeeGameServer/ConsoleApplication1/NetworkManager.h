@@ -18,7 +18,8 @@ void SendPlayersScoreToClients(ScorePacket score);
 void SendWinPlayerIdPacketToClients(WinPlayerIdPacket winplayer);
 //클라에게 맵데이터 보냄
 void SendMapDataPackets(MapDataPacket mapData);
-
+//모든 클라 연결 끊음
+void CloseAllClients();
 
 int InitServerSocket();
 

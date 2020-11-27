@@ -26,6 +26,7 @@ void Player::Update(float dt) {
 	if (stayStair != stair) {
 		stayStair = stair;
 		if (stayStair) {
+			isRun = false;
 			pos = stayStair->pos;
 			//moveDirection = 0;
 			SendPlayerPos();
@@ -84,26 +85,24 @@ bool Player::IsDead() const {
 void Player::Attack() {
 	auto attackPos = pos;
 	attackPos.x += lookDirec * 100;
-	attackPos.y += 50;
-	auto player = PlayersManager::FindNearestPlayer(attackPos, 150);
-	if (player != nullptr) {
-		// TODO 본인 ID와 foundId를 모든 클라에게 전송
+	//attackPos.y += 50;
+	auto player = PlayersManager::FindNearestPlayer(attackPos, 150, this);
+	InteractPacket p;
+	p.interactPlayerId = id;
+	p.interactedObjId = -1;
+	if (player != nullptr && !player->IsDead()) {
 		player->TakeDamage(1);
-		InteractPacket p;
-		p.interactPlayerId = id;
 		p.interactedObjId = player->id;
-		SendInteractPacketToClients(p);
 	}
+	SendInteractPacketToClients(p);
 }
 
 void Player::Interact() {
 	auto interactedObjId = InteractObjManager::Interact(this);
-	if (interactedObjId != -1) {
-		InteractPacket p;
-		p.interactPlayerId = id;
-		p.interactedObjId = interactedObjId;
-		SendInteractPacketToClients(p);
-	}
+	InteractPacket p;
+	p.interactPlayerId = id;
+	p.interactedObjId = interactedObjId != -1 ? interactedObjId : 1000;
+	SendInteractPacketToClients(p);
 }
 
 void Player::SetRandomPos() {
@@ -153,10 +152,12 @@ void Player::MoveInStair(int key) {
 	}
 }
 
-Player* PlayersManager::FindNearestPlayer(vec2 point, float maxDistance) {
+Player* PlayersManager::FindNearestPlayer(vec2 point, float maxDistance, Player* ignore) {
 	float min = maxDistance;
 	Player* p = nullptr;
 	for (size_t i = 0; i < players.size(); i++) {
+		if (players[i] == ignore)
+			continue;
 		const float distance = length(players[i]->pos - point);
 		if (distance < min) {
 			min = distance;

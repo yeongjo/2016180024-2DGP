@@ -6,14 +6,14 @@ vector<Timer::DelayC>::iterator Timer::iter;
 int Timer::id;
 
 
-Timer::DelayC::DelayC(int _remain, bool _isLoop, bool beginStart, int id) {
+Timer::DelayC::DelayC(float _remain, bool _isLoop, bool beginStart, int id) {
 	SetRemainTime(_remain, _isLoop);
 	idx = id;
 	if (beginStart)
 		_remainTime = remainTime + 1;
 }
 
-bool Timer::DelayC::Tick(int add) {
+bool Timer::DelayC::Tick(float add) {
 	_remainTime += add;
 	return isBreak;
 }
@@ -22,12 +22,12 @@ void Timer::DelayC::SetEnd() {
 	isBreak = true;
 }
 
-void Timer::DelayC::SetRemainTime(int _remain, bool _isLoop) {
+void Timer::DelayC::SetRemainTime(float _remain, bool _isLoop) {
 	remainTime = _remain;
 	isLoop = _isLoop;
 }
 
-void Timer::DelayC::ChangeRemainTime(int time) {
+void Timer::DelayC::ChangeRemainTime(float time) {
 	remainTime = time;
 }
 
@@ -61,14 +61,14 @@ void Timer::DelayC::EndNext() {
 	_remainTime = remainTime + 1;
 }
 
-int Timer::Create(int _remainTime, bool _isLoop, bool beginStart) {
+int Timer::Create(float _remainTime, bool _isLoop, bool beginStart) {
 	managingObjs.push_back(Timer::DelayC(_remainTime, _isLoop, beginStart, id));
 	return id++;
 }
 
 // input ID and use
 
-int Timer::Create(int _remainTime, int _id, bool _isLoop, bool beginStart) {
+int Timer::Create(float _remainTime, int _id, bool _isLoop, bool beginStart) {
 	if (id < _id) return 0;
 	managingObjs.push_back(Timer::DelayC(_remainTime, _isLoop, beginStart, _id));
 	id = _id + 1;
@@ -77,7 +77,7 @@ int Timer::Create(int _remainTime, int _id, bool _isLoop, bool beginStart) {
 
 // must call this on other tick
 
-void Timer::Tick(int add) {
+void Timer::Tick(float add) {
 	int t = 0;
 	for (iter = managingObjs.begin(); iter != managingObjs.end(); ++t) {
 		if (iter->Tick(add)) {
@@ -105,7 +105,7 @@ void Timer::SetEnd(int idx) {
 	}
 }
 
-void Timer::ChangeEndTime(int idx, int time) {
+void Timer::ChangeEndTime(int idx, float time) {
 	for (size_t i = 0; i < managingObjs.size(); i++) {
 		if (managingObjs[i].idx == idx) {
 			return managingObjs[i].ChangeRemainTime(time);

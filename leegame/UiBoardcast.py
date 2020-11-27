@@ -41,7 +41,7 @@ class ImgBoardcast(UiBoardcast):
 
     def render(self, cam):
         self.render_rect()
-        self.imgs[cam.idx].render(self.pos, self.size)
+        self.imgs.render(self.pos, self.size)
 
 class TextBoardcast(UiBoardcast):
     def __init__(self, text, pos, remain_time = 1.0):

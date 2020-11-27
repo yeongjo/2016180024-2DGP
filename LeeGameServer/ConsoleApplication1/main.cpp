@@ -11,7 +11,7 @@ int main()
 	InitServerSocket();
 		
 	// 네트워크에 접속되고 나서 호출되어야함
-	gm.Init(getPlayerCnt());
+	gm.Init();
 
 	while(true) {
 		gm.Update(0.016f);

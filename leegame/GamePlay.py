@@ -89,7 +89,7 @@ objM = None
 def enter():
     # pc.SDL_SetRelativeMouseMode(pc.SDL_TRUE)  # 마우스 화면밖에 못나가게
     # pc.SDL_WarpMouseInWindow(View.views[0].window, View.views[0].w // 2, View.views[0].h // 2)
-
+    restart_game()
     global bgm
     if bgm == None:
         bgm = pc.load_music('sound/MainMusic.mp3')
@@ -155,6 +155,10 @@ def handle_events():
             if a.key == pc.SDLK_ESCAPE:
                 import TitleScene
                 game_framework.change_state(TitleScene)
+
+            if a.key == pc.SDLK_1:
+                import VictoryBoardcast
+                VictoryBoardcast.end_boardcast()
 
         if a.type == pc.SDL_KEYUP:
             clientKeyInputPacket.id = GameManager.g_my_player_id

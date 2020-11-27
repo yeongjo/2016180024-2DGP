@@ -5,11 +5,11 @@
 #include "Building.h"
 #include "Building.h"
 
-#define MAP_WIDTH 1920
-#define MAP_HEIGHT 1080
-#define MAP_HALF_WIDTH (MAP_WIDTH/2)
-#define MAP_HALF_HEIGHT (MAP_HEIGHT/2)
-#define WALLSIZE 400
+#define MAP_WIDTH 1920.0f
+#define MAP_HEIGHT 1080.0f
+#define MAP_HALF_WIDTH (MAP_WIDTH/2.0f)
+#define MAP_HALF_HEIGHT (MAP_HEIGHT/2.0f)
+#define WALLSIZE 400.0f
 #define FurnitureImgWidth 50
 
 class Player;
@@ -61,6 +61,7 @@ protected:
 	void OnInteracted(Obj* other) override;
 public:
 	Player* interactPlayer = nullptr;
+
 };
 
 class Building
@@ -75,6 +76,8 @@ public:
 	
 	Stair* IsInStair(vec2 pos);
 
+	void SendFurnitureData();
+	
 	// 몇 층의 바닥의 높이가 얼마인지 받는 함수
 	static float CalculateFloorHeight(int floor);
 private:

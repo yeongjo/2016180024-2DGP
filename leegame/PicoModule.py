@@ -298,7 +298,7 @@ class Animation:
 
 
 class Animator:
-
+    TYPE_NONE, TYPE_REPEAT, TYPE_ONCE, TYPE_ONCENEXTPLAY = range(4)
     def __init__(self):
         self.anim_idx = 0
         self.anim_arr = []

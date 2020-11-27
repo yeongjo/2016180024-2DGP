@@ -10,7 +10,7 @@ bgm = None
 
 is_first = False
 ready_time = 1
-ready_remain_time = 1
+ready_remain_time = 0
 
 
 def game_start():

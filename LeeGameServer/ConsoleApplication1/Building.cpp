@@ -98,28 +98,22 @@ void Building::CreateStairs() {
 }
 
 void Building::CreateFurnitures() {
-	for (size_t x = 0; x < 2; x++) {
-		for (size_t y = 0; y < 6; y++) {
-			float startX = x * (MAP_WIDTH - MAP_HALF_WIDTH);
-			float i = WALLSIZE + startX;
-			float endX = MAP_WIDTH - WALLSIZE + startX;
-			while (i < endX - 300) {
-				float random_x = i;
+	for (float x = 0; x < 2; x++) {
+		float startX = (x * MAP_WIDTH) - MAP_HALF_WIDTH + WALLSIZE;
+		float endX = MAP_WIDTH - WALLSIZE * 2 + startX;
+		for (float y = 0; y < 6; y++) {
+			float i = startX;
+			while (i < endX) {
 				float floorHeight = CalculateFloorHeight(y);
 				auto furniture = new Furniture();
-				furniture->pos.x = random_x + (FurnitureImgWidth / 2);
+				furniture->pos.x = i + (FurnitureImgWidth / 2.f);
 				furniture->pos.y = floorHeight;
 				furnitures.push_back(furniture);
-				i += FurnitureImgWidth / 2 + Random(100, 400);
+				i += FurnitureImgWidth / 2 + Random(FurnitureImgWidth+50.f, 400);
 			}
 		}
 	}
-	MapDataPacket mapData;
-	for (int i = 0; i < furnitures.size(); i++) {
-		mapData.furniturePos.push_back(furnitures[i]->pos);
-	}
-	cout << "만들어진 가구 수 : " << furnitures.size() << endl;
-	SendMapDataPackets(mapData);
+
 }
 
 Stair* Building::IsInStair(vec2 pos) {
@@ -131,6 +125,15 @@ Stair* Building::IsInStair(vec2 pos) {
 		}
 	}
 	return nullptr;
+}
+
+void Building::SendFurnitureData() {
+	MapDataPacket mapData;
+	for (int i = 0; i < furnitures.size(); i++) {
+		mapData.furniturePos.push_back(furnitures[i]->pos);
+	}
+	cout << "만들어진 가구갯수 :" << furnitures.size() << endl;
+	SendMapDataPackets(mapData);
 }
 
 // 0~5층까지

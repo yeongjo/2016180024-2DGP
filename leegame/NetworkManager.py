@@ -89,6 +89,7 @@ def RecvClientPacketFromServerAndClassifyByType():
     elif RecvPacket["type"] == PACKETTYPE_PLAYERID and my_id == -1:
         my_id = RecvPacket["PlayerId"]
         print("나의 ID는 ", my_id, "이다.")
+        GameManager.set_my_player_id(my_id)  # 한번만
 
 
 def PrintPacketInfo():
@@ -126,10 +127,11 @@ def wait_for_port(port, host='localhost', timeout=1000.0):
 
 def SocketInit():
     global client_socket, ipAddress, portNum, is_ready
-    # ipAddress = easygui.enterbox("IP 주소 입력해주세요")
-    # portNum = easygui.enterbox("포트번호 입력 해주세요")
     ipAddress = '127.0.0.1'
     portNum = 9000
+    ipAddress = easygui.enterbox("IP 주소 입력해주세요")
+    portNum = easygui.enterbox("포트번호 입력 해주세요")
+
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     wait_for_port(int(portNum), (ipAddress))
     # client_socket.connect((ipAddress, int(portNum)))
@@ -142,7 +144,7 @@ def ClientRecvThread():
     is_connected = True
 
     RecvClientPacketFromServerAndClassifyByType()
-    GameManager.set_my_player_id(my_id)  # 한번만
+
     while True:
         # 받는거 스레드로
         RecvClientPacketFromServerAndClassifyByType()

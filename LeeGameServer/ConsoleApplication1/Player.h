@@ -1,5 +1,7 @@
 #pragma once
 #include "Building.h"
+#include "Building.h"
+#include "Building.h"
 #include "Packets.h"
 
 class Player : public Obj {
@@ -24,6 +26,7 @@ public:
 
 	bool IsDead() const;
 
+	void SendPlayerPos();
 private:
 	void Attack();
 
@@ -33,7 +36,6 @@ private:
 
 	bool IsMoving();
 
-	void SendPlayerPos();
 
 	bool IsControlable();
 
@@ -59,5 +61,5 @@ public:
 	static vector<Player*> players;
 
 	// 플레이어 ID 반환, 실패시 -1 반환
-	static Player* FindNearestPlayer(vec2 point, float maxDistance);
+	static Player* FindNearestPlayer(vec2 point, float maxDistance, Player* ignore = nullptr);
 };

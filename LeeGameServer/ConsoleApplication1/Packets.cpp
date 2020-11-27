@@ -110,8 +110,8 @@ void WinPlayerIdPacket::Deserialize(Json::Value& root) {
 void MapDataPacket::Serialize(Json::Value& root) {
 	root["type"] = (int)type;
 	for (auto a : furniturePos) {
-		root["furniturePosX"].append(a.x);
-		root["furniturePosY"].append(a.y);
+		root["furniturePosX"].append((int)a.x);
+		root["furniturePosY"].append((int)a.y);
 	}
 }
 

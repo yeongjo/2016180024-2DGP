@@ -25,14 +25,14 @@ class Player(DrawObj):
         self.anim2.load('img/ping.png', 1, 2, np.array([0, 0]))
         self.size[0], self.size[1] = 1, 1
         self.anim = Animator()
-        self.anim.load('img/user_idle.png', 1, 5, np.array([80, 0]))  # 0
-        self.anim.load('img/user_walk.png', 1, 8, np.array([80, 0]))  # 1
-        self.anim.load('img/user_run.png', 1, 4, np.array([80, 0]))  # 2
-        self.anim.load('img/user_active.png', 3, 3, np.array([80, 0]))  # 3
-        self.anim.load('img/user_die1.png', 2, 9, np.array([80, 0]))  # 4 플레이어한테 죽음
-        self.anim.load('img/user_movebody.png', 1, 7, np.array([0, 0]))  # 5 시체유기
-        self.anim.load('img/user_attack.png', 3, 7, np.array([0, 0]))  # 6 공격
-        self.anim.load('img/user_hit.png', 3, 1, np.array([80, 0]))  # 7 아야
+        self.anim.load('img/user_idle.png', Animator.TYPE_ONCE, 5, np.array([80, 0]))  # 0
+        self.anim.load('img/user_walk.png', Animator.TYPE_ONCE, 8, np.array([80, 0]))  # 1
+        self.anim.load('img/user_run.png', Animator.TYPE_ONCE, 4, np.array([80, 0]))  # 2
+        self.anim.load('img/user_active.png', Animator.TYPE_ONCENEXTPLAY, 3, np.array([80, 0]))  # 3
+        self.anim.load('img/user_die1.png', Animator.TYPE_ONCE, 9, np.array([80, 0]))  # 4 플레이어한테 죽음
+        self.anim.load('img/user_movebody.png', Animator.TYPE_ONCE, 7, np.array([0, 0]))  # 5 시체유기
+        self.anim.load('img/user_attack.png', Animator.TYPE_ONCENEXTPLAY, 7, np.array([0, 0]))  # 6 공격
+        self.anim.load('img/user_hit.png', Animator.TYPE_ONCENEXTPLAY, 1, np.array([80, 0]))  # 7 아야
         self.anim.anim_arr[7].delayTime = 1 / 2.0
 
         self.attack_sound = Sound.load('sound/Attack2.wav', 100)
@@ -62,13 +62,15 @@ class Player(DrawObj):
         viewIdx = len(View.views) - 1
         self.half_w = View.views[viewIdx].w // 2
         self.half_h = View.views[viewIdx].h // 2
-        View.views[viewIdx].cam.pos = self.pos - np.array([self.half_w, self.half_h - 200])
+        # View.views[viewIdx].cam.pos = self.pos - np.array([self.half_w, self.half_h - 200])
 
     def attack(self):
+        print(self.id, ": attack")
         self.anim.play(Player.ATTACK, Player.IDLE)
         self.attack_sound.play()
 
     def hit(self):
+        print(self.id, ": hit")
         self.anim.play(Player.HIT, Player.IDLE)
         self.hurt_sound.play()
         self.health -= 1
@@ -76,6 +78,7 @@ class Player(DrawObj):
             self.die()
 
     def interact(self):
+        print(self.id, ": interact")
         self.anim.play(Player.ACTIVE, Player.IDLE)
         self.interact_sound.play()
         self.cancel_move_body()
@@ -95,24 +98,29 @@ class Player(DrawObj):
 
         if self.is_die() and end_anim_idx == ISONCEEND and not self.is_paused:  # 죽는게 끝나면
             print("키보드 플레이어 죽음")
+            if GameManager.g_my_player_id == self.id:
+                GameManager.boardcast_win_player(-1)
             self.is_paused = True
-            GameManager.round_end(1)
+            # GameManager.round_end(1)
+            return
+        if self.is_die():
+            return
 
         if self.anim.anim_idx == Player.HIT:
             return
 
-        if self.anim.anim_idx == Player.ATTACK:
-            if not self.is_attacking:  # 맞는동작중엔 아무것도못하게
-                if self.anim.anim_arr[self.anim.anim_idx].frame >= 5:
-                    # 일정이상 프레임넘어가면 공격함
-                    self.attack()
-                    self.is_attacking = True
-            return
+        # if self.anim.anim_idx == Player.ATTACK:
+        #     if not self.is_attacking:  # 맞는동작중엔 아무것도못하게
+        #         if self.anim.anim_arr[self.anim.anim_idx].frame >= 5:
+        #             # 일정이상 프레임넘어가면 공격함
+        #             self.attack()
+        #             self.is_attacking = True
+        #     return
 
         self.is_attacking = False
 
         speed = 300
-        print("x delta: ", self.delta_pos[0], ", move speed: ", np.linalg.norm(self.delta_pos))
+        # print("x delta: ", self.delta_pos[0], ", move speed: ", np.linalg.norm(self.delta_pos))
 
         # 상호작용
         run = KeyController.moveTime.check(dt)  # s키 동작 상태확인
@@ -178,6 +186,7 @@ class Player(DrawObj):
         self.moving_body = None
 
     def die(self):
+        print(self.id, ": die")
         self.die_sound.play()
         self.anim.play(4)
 
@@ -251,9 +260,8 @@ class Player(DrawObj):
         tem_pos, tem_size = self.calculate_pos_size(cam)
 
         if self.is_in_stair:  # 계단안에 있다면 플레이어2에게만 화살표로 표시하고 나머지에겐 안보임
-            if cam.idx == 1:
-                tem_pos[1] += 150
-                self.imgs[0].render(tem_pos, tem_size)
+            tem_pos[1] += 150
+            self.imgs[0].render(tem_pos, tem_size)
             return
 
         self.anim.render(tem_pos, tem_size, cam)
@@ -265,7 +273,8 @@ class Player(DrawObj):
 
         import Font
         Font.active_font(0, True)
-        Font.draw_text(str(self.name), tem_pos + np.array([0, 50]))
+        tem_pos[1] += 50 * cam.size
+        Font.draw_text(str(self.name), tem_pos)
 
     def is_die(self):
         return self.health <= 0

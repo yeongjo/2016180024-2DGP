@@ -5,6 +5,7 @@
 
 vector<SOCKET> client_sock;
 int playerCnt = 0;
+bool startToCloseClients = false;
 
 int getPlayerCnt()
 {
@@ -29,9 +30,10 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	std::string errs;
 	Json::Value root;
 
+	cout << "새로 접속한 플레이어 id: " << playerCnt << endl;
 	SendPlayerIDPacketToClients(playerCnt++);
 
-	while (1)
+	while (!startToCloseClients)
 	{
 		//recv
 		retval = recv(client_sock, buf, BUFSIZE, 0);
@@ -69,16 +71,16 @@ void SendPlayerIDPacketToClients(int id)
 }
 
 void SendMapDataPackets(MapDataPacket mapData) {	
-	std::cout << "맵데이터 전송" << endl;
 	mapData.type = EPacketType::MapData;		
 	int retval;
 	string s;
 	CJsonSerializer::Serialize(&mapData, s);
-	
+	std::cout << "맵데이터 전송 : " << s << endl;
+
 	for (int client = 0; client < client_sock.size(); client++) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
 		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); std::cout << endl; }
-	}	
+	}
 }
 
 void SendChangedPlayerPositionToClients(PlayerPacket player)
@@ -133,8 +135,8 @@ void SendWinPlayerIdPacketToClients(WinPlayerIdPacket winplayer)
 	}
 }
 
-int InitServerSocket()
-{
+vector<HANDLE> hThread;
+DWORD WINAPI JoinPlayerThread(LPVOID arg) {
 	int retval;
 	WSADATA wsa;
 
@@ -161,8 +163,6 @@ int InitServerSocket()
 
 	SOCKADDR_IN clientaddr;
 	int addrlen;
-	vector<HANDLE> hThread;
-	int playerCnt = 0;
 
 
 	//send socket
@@ -176,8 +176,8 @@ int InitServerSocket()
 	// 플레이어 들어옴
 	// 클라이언트에게 playerCnt를 ID로 전송
 	std::cout << "서버 열림" << endl;
-
-	while (playerCnt < MAXPLAYER-1)
+	
+	while (true)
 	{
 
 		//accept        
@@ -190,8 +190,38 @@ int InitServerSocket()
 		hThread.push_back(CreateThread(NULL, 0, ProcessClient, (LPVOID)client_sock[playerCnt], 0, NULL));		
 		if (hThread[playerCnt] == NULL) { closesocket(client_sock[playerCnt]); }
 		else { CloseHandle(hThread[playerCnt]); }
-		playerCnt++;
 	}
+}
+
+void CloseAllClients() {
+	// TODO vector push랑 clear랑 동시에 일어나면 문제생길지도
+	startToCloseClients = true;
+
+	// 스레드가 전부 종료되길 기다린다.
+	while(1) {
+
+		Sleep(100);
+	}
+	
+	for (int i = 0; i < hThread.size(); i++)
+	{
+		CloseHandle(hThread[i]);
+	}
+	for (int i = 0; i < client_sock.size(); i++)
+	{
+		closesocket(client_sock[i]);
+	}
+	client_sock.resize(0);
+	hThread.resize(0);
+
+	startToCloseClients = false;
+}
+
+int InitServerSocket()
+{
+	CreateThread(NULL, 0, JoinPlayerThread, (LPVOID)NULL, 0, NULL);
+
+	
 
 	//PlayerPacket test;	
 
@@ -210,4 +240,5 @@ int InitServerSocket()
 
 	/*closesocket(listen_sock);
 	WSACleanup();*/
+	return 0;
 }
