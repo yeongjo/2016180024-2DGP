@@ -18,6 +18,8 @@ public:
 
 	Player();
 
+	virtual ~Player();
+
 	void Update(float dt);
 
 	bool SetInput(ClientKeyInputPacket packet); // 입력패킷 받음
@@ -29,6 +31,8 @@ public:
 	void SendPlayerPos();
 
 	void Suicide();
+
+	bool UpdateScore();
 
 	static int GetTotalPlayerCnt();
 

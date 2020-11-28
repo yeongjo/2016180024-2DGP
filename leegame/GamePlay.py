@@ -97,13 +97,13 @@ def enter():
     bgm.repeat_play()
 
     global objM
-    if objM is None:
-        objM = ObjM()
-        objM.active()
-
+    if objM is not None:
+        del objM
+    objM = ObjM()
+    objM.active()
     make_objs()
+
     make_furniture_by_packet(NetworkManager.furniturePos)
-    GameManager.init()
 
 
 def update(dt):  # View 각자의 그리기를 불러줌
@@ -146,7 +146,7 @@ def handle_events():
 
         # 키보드 입력
         if a.type == pc.SDL_KEYDOWN:
-            print(a.key)
+            # print(a.key)
             clientKeyInputPacket.id = GameManager.g_my_player_id
             clientKeyInputPacket.key = a.key
             if a.key in [KEY_A, KEY_D, KEY_S, KEY_W, KEY_H, KEY_J, KEY_K, KEY_2]:

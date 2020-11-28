@@ -51,6 +51,8 @@ void Stair::SetTargetPos(vec2 other, int idx) {
 void Furniture::OnInteracted(Obj* other) {
 	if (interactPlayer) {
 		interactPlayer->score.increaseScoreAmount--;
+		if (interactPlayer->score.increaseScoreAmount < 0)
+			interactPlayer->score.increaseScoreAmount = 0;
 	}
 	auto p = dynamic_cast<Player*>(other);
 	interactPlayer = p;

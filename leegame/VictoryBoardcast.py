@@ -76,15 +76,15 @@ class RoundBoardcast(TextBoardcast):
 
 
 class EndVictoryBoardcast(VictoryBoardcast):
-    def exit(self):
-        text = "졌"
-        if GameManager.is_local_player_win():
-            text = "이겼"
-        tem = EndRoundBoardcast(text, self.pos, 2.0)
-        tem.alpha = int(self.alpha)
+    # def exit(self):
+    #     text = "졌"
+    #     if GameManager.is_local_player_win():
+    #         text = "이겼"
+    #     tem = EndRoundBoardcast(text, self.pos, 2.0)
+    #     tem.alpha = int(self.alpha)
 
     def exit(self):
-        print("last round end")
+        print("game end")
         GameManager.end_boardcast()
 
     def tick(self, dt):

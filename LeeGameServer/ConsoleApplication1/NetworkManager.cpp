@@ -53,6 +53,11 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			cout << "recv 대기중 클라이언트 종료됨..\n";
 			return 0;
 		}
+		//cout << "recv msg " << retval << endl;
+		if(retval == 0) {
+			Sleep(1);
+			continue;
+		}
 		string packet = strtok(buf, "}");
 		packet += "}";
 
@@ -81,7 +86,7 @@ void SendPlayerIDPacketToClients(int id)
 
 	for (int client = 0; client < client_sock.size(); client++) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("recv() err 3"); std::cout << endl; }
+		if (retval == SOCKET_ERROR) { cout << ("SendPlayerIDPacketToClients() err 3"); std::cout << endl; }
 	}
 }
 
@@ -94,7 +99,7 @@ void SendMapDataPackets(MapDataPacket mapData) {
 
 	for (int client = 0; client < client_sock.size(); client++) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("SendMapDataPackets err"); std::cout << endl; }
+		if (retval == SOCKET_ERROR) { cout << ("SendMapDataPackets err"); std::cout << endl; }
 	}
 }
 
@@ -107,7 +112,7 @@ void SendChangedPlayerPositionToClients(PlayerPacket player)
 
 	for (int client = 0; client < client_sock.size(); client++) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("SendChangedPlayerPositionToClients() err"); std::cout << endl; }
+		if (retval == SOCKET_ERROR) { cout << ("SendChangedPlayerPositionToClients() err"); std::cout << endl; }
 	}	
 }
 
@@ -120,7 +125,7 @@ void SendInteractPacketToClients(InteractPacket interact)
 
 	for (int client = 0; client < client_sock.size(); client++) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("SendInteractPacketToClients() err"); std::cout << endl; }
+		if (retval == SOCKET_ERROR) { cout << ("SendInteractPacketToClients() err"); std::cout << endl; }
 	}	
 }
 
@@ -131,16 +136,20 @@ void SendPlayersScoreToClients(ScorePacket score)
 	string s;
 	CJsonSerializer::Serialize(&score, s);
 
-	for (int client = 0; client < client_sock.size(); client++) {
+	for (int client = 0; client < client_sock.size(); ) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
 		//계속보내는친구가 안받으면 지워줌
 		if (retval == SOCKET_ERROR) {
 			closesocket(client_sock[client]);
 			client_sock.erase(client_sock.begin() + client);
-			cout << "SendPlayersScoreToClients() 나간 플레이어 id: " << GameManager::Self()->players[client]->id << endl;
-			GameManager::Self()->players[client]->Suicide();
-			delete GameManager::Self()->players[client];
-			GameManager::Self()->players.erase(GameManager::Self()->players.begin() + client);
+			cout << "SendPlayersScoreToClients() exception " << "idx: "<< client << " " << client_sock.size() << " " << GameManager::Self()->players.size();
+			if (client_sock.size()+1 == GameManager::Self()->players.size()) {
+				cout << " 나간 플레이어 id: " << GameManager::Self()->players[client]->id;
+				GameManager::Self()->KillPlayer(client);
+			}
+			cout << endl;
+		}else {
+			client++;
 		}
 	}
 }
@@ -154,7 +163,7 @@ void SendWinPlayerIdPacketToClients(WinPlayerIdPacket winplayer)
 
 	for (int client = 0; client < client_sock.size(); client++) {
 		retval = send(client_sock[client], s.c_str(), BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) { err_display("SendWinPlayerIdPacketToClients err"); std::cout << endl; }
+		if (retval == SOCKET_ERROR) { cout << ("SendWinPlayerIdPacketToClients err"); std::cout << endl; }
 	}
 }
 

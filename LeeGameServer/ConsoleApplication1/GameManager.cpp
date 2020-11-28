@@ -16,13 +16,13 @@ void GameManager::Update(float dt) {
 
 	if (getPlayerCnt() > Player::GetTotalPlayerCnt()) {
 		building.SendFurnitureData();
-		players.push_back(new Player());
 		for (int i = 0; i < players.size(); i++)
 		{
 			if (!players[i] || players[i]->IsDead()) 
 				continue;
 			players[i]->SendPlayerPos();
 		}
+		players.push_back(new Player());
 		SendFurnitureState();
 	}
 
@@ -36,25 +36,33 @@ void GameManager::Update(float dt) {
 		// 1초가 지났으면
 
 		// 살아있는 유저가 하나인지 검사
-
+		for (int i = 0; i < players.size(); i++)
+		{
+			if (!players[i] || players[i]->IsDead())
+				continue;
+			players[i]->SendPlayerPos();
+		}
+		//SendFurnitureState();
 
 		// 유저 점수 증가
-		ScorePacket p;
-		p.scores.resize(Player::GetTotalPlayerCnt());
+		if(!players.empty())
+			scorePacket.scores.resize(Player::GetTotalPlayerCnt());
 		for (auto player : players) {
 			if (!player) continue;
-			if (player->score.Update()) {
+			if (player->UpdateScore()) {
 				// 누군가 이겼다면 게임종료
 				WinPlayerIdPacket winPlayerIdPacket;
 				winPlayerIdPacket.winPlayerId = player->id;
 				SendWinPlayerIdPacketToClients(winPlayerIdPacket);
 				//players.resize(0);
+				cout << "승리한 플레이어는 " << player->id << endl;
 				Reset();
+				break;
 			}
-			if(player->id < p.scores.size())
-				p.scores[player->id] = player->score.score;
+			if(player->id < scorePacket.scores.size())
+				scorePacket.scores[player->id] = player->score.score;
 		}
-		SendPlayersScoreToClients(p);
+		SendPlayersScoreToClients(scorePacket);
 	}
 }
 
@@ -72,7 +80,7 @@ void GameManager::SendFurnitureState() {
 		if (!building.furnitures[i]->interactPlayer)
 			continue;
 		InteractPacket p;
-		p.interactPlayerId = building.furnitures[i]->interactPlayer->id;
+		p.interactPlayerId = building.furnitures[i]->interactPlayer->id; 
 		p.interactedObjId = building.furnitures[i]->id;
 		SendInteractPacketToClients(p);
 	}
@@ -81,6 +89,16 @@ void GameManager::SendFurnitureState() {
 
 void GameManager::KillPlayer(int idx) {
 	players[idx]->Suicide();
+	for (int i = 0; i < InteractObjManager::interactObjs.size(); i++)
+	{
+		if (InteractObjManager::interactObjs[i]->interactPlayer == players[idx]) {
+			InteractObjManager::interactObjs[i]->interactPlayer = nullptr;
+			break;
+		}
+	}
+	delete players[idx];
+	players.erase(players.begin() + idx);
+	
 }
 
 GameManager* GameManager::Self() {
@@ -104,11 +122,11 @@ bool GameManager::IsEveryPlayerDisconnected() {
 }
 
 void GameManager::Reset() {
-	//for (int i = 0; i < players.size(); i++)
-	//{
-	//	delete players[i];
-	//}
-	//players.resize(0);
+	for (int i = 0; i < players.size(); i++)
+	{
+		delete players[i];
+	}
+	players.resize(0);
 
 	setPlayerCnt(0);
 
@@ -117,7 +135,7 @@ void GameManager::Reset() {
 
 	//CloseAllClients();
 
-	cout << "모든 클라이언트가 나가 리셋됨" << endl;
+	cout << "서버 게임 상태 리셋" << endl;
 }
 
 GameManager* GameManager::self = nullptr;

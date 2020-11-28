@@ -7,6 +7,7 @@ import copy as cp
 from InteractObj import InteractObj
 from Actor import Actor
 from Sound import Sound
+import time
 
 
 class Player(DrawObj):
@@ -44,6 +45,7 @@ class Player(DrawObj):
     def init(self, name):
         random_x = (0, 1920)
         self.name = name
+        self.last_pos_update_time = time.time()
         self.pos[0] = random_x[random.randint(0, 1)]
         self.pos[1] = GamePlay.calculate_floor_height(random.randint(0, 5))
         self.interact_obj = None  # 있을 때 움직이면 인터렉트 오브젝트 비활성화 용
@@ -56,6 +58,7 @@ class Player(DrawObj):
         self.id = Player.g_id
         Player.g_id += 1
         self.dead_remove_remain_time = 2
+        self.is_first_die = True
 
         self.is_attacking = False
         self.moving_body = None
@@ -89,6 +92,7 @@ class Player(DrawObj):
         self.pos[1] = pos[1]
         self.delta_pos = self.pos - self.prev_pos
         self.prev_pos = cp.copy(self.pos)
+        self.last_pos_update_time = time.time()
 
     def tick(self, dt):
         if self.id == GameManager.g_my_player_id:
@@ -97,20 +101,24 @@ class Player(DrawObj):
 
         end_anim_idx = self.anim.tick(dt)
 
-        if self.is_die() and end_anim_idx == ISONCEEND and not self.is_paused:  # 죽는게 끝나면
-            print("키보드 플레이어 죽음")
-            if GameManager.g_my_player_id == self.id:
-                GameManager.boardcast_win_player(-1)
-            self.is_paused = True
-            # GameManager.round_end(1)
-            return
         if self.is_die():
+            if self.is_first_die and end_anim_idx == ISONCEEND:  # 죽는게 끝나면
+                self.is_first_die = False
+                print(self.id, " 플레이어 죽음")
+                if GameManager.g_my_player_id == self.id:
+                    GameManager.boardcast_win_player(-1)
             self.dead_remove_remain_time -= dt
             if self.dead_remove_remain_time <= 0:
                 GameManager.remove_player(self)
+                print(self.id, " 플레이어 시체 지워짐")
             return
 
         if self.anim.anim_idx == Player.HIT:
+            return
+
+        # 3초동안 위치갱신이 없으면
+        if time.time() - self.last_pos_update_time > 5:
+            self.die()
             return
 
         # if self.anim.anim_idx == Player.ATTACK:
@@ -256,7 +264,7 @@ class Player(DrawObj):
             cam.size += (cam.default_size * 0.45 - cam.size) * dt * 2
         else:
             half_w, half_h = np.array(get_center()) // 2
-            cam_offset = 1920 // 4 - half_w, 1080 // 4 - half_h
+            cam_offset = half_w * 3, half_h * 3
             cam_pos += (player_pos - cam_offset - cam_pos) * dt * 3
 
     def render(self, cam):

@@ -8,6 +8,8 @@ import easygui  # ip입력 받는 입력상자
 
 is_connected = False
 
+client_socket = None
+
 # 패킷 타입들
 PACKETTYPE_PLAYER = 0
 PACKETTYPE_INTERACT = 1
@@ -129,18 +131,29 @@ def SocketInit():
     global client_socket, ipAddress, portNum, is_ready
     ipAddress = '127.0.0.1'
     portNum = 9000
-    ipAddress = easygui.enterbox("IP 주소 입력해주세요", "IP 주소 입력해주세요", "127.0.0.1")
-    portNum = easygui.enterbox("포트번호 입력 해주세요", "포트번호 입력 해주세요", "9000")
+    if client_socket is None:
+        ipAddress = easygui.enterbox("IP 주소 입력해주세요", "IP 주소 입력해주세요", "127.0.0.1")
+        portNum = easygui.enterbox("포트번호 입력 해주세요", "포트번호 입력 해주세요", "9000")
+    DisconnectSocket()
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     wait_for_port(int(portNum), (ipAddress))
     # client_socket.connect((ipAddress, int(portNum)))
 
 
+def DisconnectSocket():
+    global client_socket
+    if client_socket is not None:
+        c = client_socket
+        client_socket = None
+        c.close()
+
+
 # 연결되면 계속 받는스레드임
 def ClientRecvThread():
-    global is_connected
+    global is_connected, my_id
     SocketInit()
+    my_id = -1
     is_connected = True
 
     RecvClientPacketFromServerAndClassifyByType()
@@ -148,13 +161,17 @@ def ClientRecvThread():
     while True:
         # 받는거 스레드로
         try:
+            if client_socket is None:
+                break
             RecvClientPacketFromServerAndClassifyByType()
         except socket.error:
-            from VictoryBoardcast import disconnect_boardcast
-            disconnect_boardcast()
+            if client_socket is not None:
+                from VictoryBoardcast import disconnect_boardcast
+                disconnect_boardcast()
             break
         # PrintPacketInfo()
         # time.sleep(.1)
+    DisconnectSocket()
 
 
 def StartClientSocket():

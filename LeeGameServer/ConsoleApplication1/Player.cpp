@@ -18,6 +18,16 @@ Player::Player() : Obj() {
 	SendPlayerPos();
 }
 
+Player::~Player() {
+	for (size_t i = 0; i < PlayersManager::players.size(); i++) {
+		if (PlayersManager::players[i] == this) {
+			PlayersManager::players.erase(PlayersManager::players.begin() + i);
+			break;
+		}
+	}
+	
+}
+
 void Player::Update(float dt) {
 	if (IsDead())
 		return;
@@ -134,7 +144,13 @@ void Player::Suicide() {
 	p.interactPlayerId = id;
 	p.interactedObjId = id;
 	SendInteractPacketToClients(p);
-	SendInteractPacketToClients(p);
+	//SendInteractPacketToClients(p);
+}
+
+bool Player::UpdateScore() {
+	if(!IsDead())
+		return score.Update();
+	return false;
 }
 
 int Player::GetTotalPlayerCnt() {

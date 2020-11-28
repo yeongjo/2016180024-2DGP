@@ -8,9 +8,9 @@ import random
 objM = None
 bgm = None
 
-is_first = False
+is_first = True
 ready_time = 1
-ready_remain_time = 0
+ready_remain_time = 1
 
 
 def game_start():
@@ -28,6 +28,7 @@ def set_window_size_1280():
     import Font
     Font.load_font(1280.0 / 1920.0)
 
+
 def set_window_size_720():
     change_view_size(720, 405)
     import Font
@@ -39,10 +40,14 @@ def make_objs():
     ui_mouse.load_img('img/Title.png')
     ui_mouse.pos = np.array(ui_mouse.get_halfsize())
 
-    default_scale = 1280.0/1920.0
-    Button(10*default_scale, 10*default_scale, 200*default_scale, 100*default_scale, "1920", set_window_size_1920)
-    Button(10*default_scale, 110*default_scale, 200*default_scale, 200*default_scale, "1280", set_window_size_1280)
-    Button(10*default_scale, 210*default_scale, 200*default_scale, 300*default_scale, "720", set_window_size_720)
+    default_scale = 1280.0 / 1920.0
+    Button(10 * default_scale, 10 * default_scale, 200 * default_scale, 100 * default_scale, "1920",
+           set_window_size_1920)
+    Button(10 * default_scale, 110 * default_scale, 200 * default_scale, 200 * default_scale, "1280",
+           set_window_size_1280)
+    Button(10 * default_scale, 210 * default_scale, 200 * default_scale, 300 * default_scale, "720",
+           set_window_size_720)
+
 
 # 타이틀 신 들와서 처음 시작
 def enter():
@@ -65,10 +70,15 @@ def enter():
     objM.active()
 
     global is_first
-    if not is_first:
+    if is_first:
         make_objs()
+        is_first = False
 
     prc.reset()
+    global ready_remain_time
+    ready_remain_time = 1
+    import GameManager
+    GameManager.init()
 
     import NetworkManager
     NetworkManager.StartClientSocket()

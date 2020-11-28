@@ -14,15 +14,17 @@ g_my_player_id = -1
 g_win_player_idx = -1
 g_players_name = []
 make_player_queue = dict()
+g_interact_queue = []
 
 
 def init():
     from Player import Player
     from InteractObj import InteractObj
     global g_players_and_scores, g_win_player_idx
+    global g_interact_queue, g_interactObjs
 
-    GamePlay.restart_game()
-
+    g_interact_queue = []
+    g_interactObjs = []
     g_win_player_idx = -1
     Player.RESET()
     InteractObj.RESET()
@@ -93,18 +95,18 @@ def update():
     later_update_furniture_datas()
 
 
-g_interact_queue = []
 def later_update_furniture_datas():
-    global g_interact_queue
+    global g_interact_queue, g_interactObjs
     if len(g_interactObjs) == 0:
         return
-    for interactor_id, target_id in g_interact_queue:
+    interact_queue = cp.copy(g_interact_queue)
+    for interactor_id, target_id in interact_queue:
         update_interact_state(interactor_id, target_id)
     g_interact_queue.clear()
 
 
 def update_interact_state(interactor_id, target_id):
-    global g_interact_queue
+    global g_interact_queue, g_interactObjs
     if target_id >= FURNITURE_START_IDX:  # 가구와의 상호작용
         if len(g_interactObjs) == 0:
             g_interact_queue.append((interactor_id, target_id))
@@ -146,6 +148,8 @@ def reset_ui():
 
 # data = (12,43,53)
 def update_ui(data):
+    if len(data) == 1 and data[0] == -1:
+        return
     for i in range(len(data)):
         if i in g_players_and_scores.keys():
             g_players_and_scores[i][1].value = data[i]

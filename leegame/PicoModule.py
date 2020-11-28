@@ -6,8 +6,8 @@ is_debug = False
 
 font01 = None
 
-Screen_Width = 1920
-Screen_Height = 1080
+Screen_Width = 720
+Screen_Height = 405
 
 
 # 폰트 로딩
@@ -54,7 +54,7 @@ def _open_other_canvas(w=int(800), h=int(600), sync=True, full=False):
     else:
         flags = pc.SDL_WINDOW_SHOWN
 
-    window = pc.SDL_CreateWindow(caption, 0, 0, w, h, flags)
+    window = pc.SDL_CreateWindow(caption, 0, 50, w, h, flags)
     if sync:
         renderer = pc.SDL_CreateRenderer(window, -1,
                                          pc.SDL_RENDERER_ACCELERATED | pc.SDL_RENDERER_PRESENTVSYNC)
@@ -92,6 +92,9 @@ class ObjM:
 
     def __init__(self):
         self.objs = [[], [], []]
+
+    def __del__(self):
+        self.clear()
 
     def add_object(self, o, idx=0):
         self.objs[idx].append(o)
