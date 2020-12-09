@@ -52,7 +52,8 @@ class ClientKeyInputPacket:
 
 # 입력키 패킷으로 만들어서 서버한테 전송
 def SendClientKeyInputPacketToServer(packet):
-    client_socket.sendall(bytes(packet.toJSON(), encoding="utf-8"))
+    text = packet.toJSON().ljust(200)
+    client_socket.send(bytes(text, encoding="utf-8"))
 
 
 # 서버로 부터 패킷 받아오고 패킷 타입에 따라 분류함
@@ -159,12 +160,12 @@ def ClientRecvThread():
     RecvClientPacketFromServerAndClassifyByType()
 
     while True:
-        # 받는거 스레드로
         try:
             if client_socket is None:
                 break
             RecvClientPacketFromServerAndClassifyByType()
         except socket.error:
+            # 서버가 닫히면 서버와의 연결이 끊어졌음을 화면에 띄우고 종료한다
             if client_socket is not None:
                 from VictoryBoardcast import disconnect_boardcast
                 disconnect_boardcast()
@@ -180,10 +181,10 @@ def StartClientSocket():
 
 
 # 테스트 패킷
-SendPacket = ClientKeyInputPacket()
-SendPacket.key = 2
-SendPacket.id = 0
-SendPacket.isDown = False
+# SendPacket = ClientKeyInputPacket()
+# SendPacket.key = 2
+# SendPacket.id = 0
+# SendPacket.isDown = False
 #
 # if is_connected:
 #     while True:

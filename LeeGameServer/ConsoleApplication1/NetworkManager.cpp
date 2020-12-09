@@ -46,7 +46,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	while (!startToCloseClients)
 	{
 		if (!optval)
-			std::cout << "나는죽었다" << endl;
+			cout << "나는죽었다" << endl;
 		//recv
 		retval = recv(client_sock, buf, BUFSIZE, 0);
 		if (retval == SOCKET_ERROR) {
@@ -64,13 +64,13 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		//Parsing
 		reader->parse(packet.c_str(), packet.c_str() + packet.length(), &root, &errs);
 		input.Deserialize(root);
-		std::cout << "key : " << input.key << "\t ID : " << input.id << "\t isDown : " << input.isDown << endl;
+		cout << "key : " << input.key << "\t ID : " << input.id << "\t isDown : " << input.isDown << endl;
 		GameManager::Self()->UpdatePlayerInput(input);
 		//Sleep(16);
 	}
 
 	closesocket(client_sock);
-	std::printf("\n[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트번호=%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+	printf("\n[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트번호=%d\n", inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 
 	return 0;
 }

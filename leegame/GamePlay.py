@@ -150,6 +150,7 @@ def handle_events():
             clientKeyInputPacket.id = GameManager.g_my_player_id
             clientKeyInputPacket.key = a.key
             if a.key in [KEY_A, KEY_D, KEY_S, KEY_W, KEY_H, KEY_J, KEY_K, KEY_2]:
+                print("key down : ", a.key)
                 clientKeyInputPacket.isDown = True
                 NetworkManager.SendClientKeyInputPacketToServer(clientKeyInputPacket)
 
@@ -166,5 +167,6 @@ def handle_events():
             clientKeyInputPacket.id = GameManager.g_my_player_id
             clientKeyInputPacket.key = a.key
             if a.key in [KEY_A, KEY_D, KEY_J]:
+                print("key up : ", a.key)
                 clientKeyInputPacket.isDown = False
                 NetworkManager.SendClientKeyInputPacketToServer(clientKeyInputPacket)
