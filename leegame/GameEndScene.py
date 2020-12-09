@@ -42,11 +42,11 @@ objM = None
 def enter():
     pc.SDL_SetRelativeMouseMode(pc.SDL_FALSE)  # 마우스 화면밖에 못나가게
 
-    global bgm
-    if (bgm == None):
-        bgm = pc.load_music('sound/Win.mp3')
-    bgm.set_volume(64)
-    bgm.play()
+    # global bgm
+    # if (bgm == None):
+    #     bgm = pc.load_music('sound/Win.mp3')
+    # bgm.set_volume(64)
+    # bgm.play()
 
     View.reset()
 
@@ -70,7 +70,7 @@ def enter():
 
 
 def update(dt):  # View 각자의 그리기를 불러줌
-    objM.tick(dt)
+    # objM.tick(dt)
 
     if prc.check_ready_status():
         global ready_remain_time
@@ -96,7 +96,7 @@ def draw():
         i += 1
 
 def exit():
-    bgm.stop()
+    # bgm.stop()
     objM.clear()
 
 def handle_events():
