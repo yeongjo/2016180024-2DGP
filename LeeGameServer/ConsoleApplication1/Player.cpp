@@ -133,6 +133,9 @@ bool Player::IsMoving() {
 }
 
 void Player::SendPlayerPos() {
+	_packetSendCnt--;
+	if (_packetSendCnt > 0) return;
+	_packetSendCnt = packetSendCnt;
 	PlayerPacket p;
 	p.pos = pos;
 	p.id = id;

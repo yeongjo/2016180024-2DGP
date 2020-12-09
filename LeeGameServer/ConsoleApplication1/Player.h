@@ -62,6 +62,8 @@ private:
 	int lookDirec = 1;
 	bool isRun = false;
 	Stair* stayStair = nullptr;
+	int packetSendCnt = 2;
+	int _packetSendCnt = 2;
 
 	static int totalPlayerCnt;
 };
