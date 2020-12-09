@@ -23,7 +23,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	int retval;
 	SOCKADDR_IN clientaddr;
 	int addrlen = sizeof(clientaddr);
-	char buf[BUFSIZE];
+	char buf[RECVBUFSIZE];
 
 	// 클라이언트 정보 얻기    
 	getpeername(client_sock, (SOCKADDR*)&clientaddr, &addrlen);
@@ -48,7 +48,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		if (!optval)
 			std::cout << "나는죽었다" << endl;
 		//recv
-		retval = recv(client_sock, buf, BUFSIZE, 0);
+		retval = recv(client_sock, buf, RECVBUFSIZE, 0);
 		if (retval == SOCKET_ERROR) {
 			cout << "recv 대기중 클라이언트 종료됨..\n";
 			return 0;
@@ -57,7 +57,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		if(retval == 0) {
 			Sleep(1);
 			continue;
-		}
+		}		
 		string packet = strtok(buf, "}");
 		packet += "}";
 

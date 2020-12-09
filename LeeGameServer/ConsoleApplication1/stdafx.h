@@ -33,6 +33,7 @@ void print(LPCTSTR pszStr, ...);
 
 #define SERVERIP    "127.0.0.1"
 #define SERVERPORT  9000
+#define RECVBUFSIZE 200
 #define BUFSIZE     1000
 #define MAXPLAYER   2
 

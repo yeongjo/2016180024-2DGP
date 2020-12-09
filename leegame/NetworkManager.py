@@ -52,7 +52,9 @@ class ClientKeyInputPacket:
 
 # 입력키 패킷으로 만들어서 서버한테 전송
 def SendClientKeyInputPacketToServer(packet):
-    client_socket.sendall(bytes(packet.toJSON(), encoding="utf-8"))
+    text = packet.toJSON().ljust(200)
+    test = client_socket.send(bytes(text, encoding="utf-8"))
+    # print("크기:", len(text), "실제보낸 크기", test)
 
 
 # 서버로 부터 패킷 받아오고 패킷 타입에 따라 분류함
