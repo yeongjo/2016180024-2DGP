@@ -14,12 +14,11 @@ class UiBoardcast(DrawObj):
         pass
 
     def tick(self, dt):
-        if self.is_removed:
-            ObjM.active_list.remove_object(self)
-            return
         self.remain_time -= dt
         if self.remain_time <= 0:
             self.is_removed = True
+            if self.is_removed:
+                ObjM.active_list.remove_object(self)
             self.exit()
 
     def render(self, cam):
@@ -35,8 +34,8 @@ class ImgBoardcast(UiBoardcast):
     def __init__(self, imgs, pos, remain_time = 1.0):
         super().__init__(pos,remain_time)
         self.imgs = imgs
-        self.victory_sound = Sound.load('sound/Victory.wav', 100)
-        self.victory_sound.play()
+        # self.victory_sound = Sound.load('sound/Victory.wav', 100)
+        # self.victory_sound.play()
 
 
     def render(self, cam):

@@ -240,15 +240,15 @@ void CloseAllClients() {
 	//{
 	//	CloseHandle(hThread[i]);
 	//}
-	for (int i = 0; i < client_sock.size(); i++)
-	{
-		closesocket(client_sock[i]);
-	}
+	//for (int i = 0; i < client_sock.size(); i++)
+	//{
+	//	closesocket(client_sock[i]);
+	//}
 	client_sock.resize(0);
 	hThread.resize(0);
 
 	//startToCloseClients = false;
-	playerCnt = 0;
+	//playerCnt = 0;
 }
 
 int InitServerSocket()

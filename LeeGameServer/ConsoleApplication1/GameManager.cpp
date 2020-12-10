@@ -133,7 +133,7 @@ void GameManager::Reset() {
 	Player::Reset();
 	InteractObj::Reset();
 
-	//CloseAllClients();
+	CloseAllClients();
 
 	cout << "서버 게임 상태 리셋" << endl;
 }
